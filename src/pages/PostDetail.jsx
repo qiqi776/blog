@@ -73,7 +73,7 @@ export default function PostDetail() {
         const visible = entries.filter((e) => e.isIntersecting);
         if (visible.length) setActiveId(visible[0].target.id);
       },
-      { rootMargin: '-72px 0px -60% 0px', threshold: 0 }
+      { rootMargin: '-80px 0px -60% 0px', threshold: 0 }
     );
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
@@ -217,7 +217,7 @@ function TableOfContents({ headings, activeId }) {
         <AlignLeft size={12} className="text-[var(--color-primary)]" />
         <span className="text-xs font-semibold text-[var(--text-heading)] tracking-wide uppercase">目录</span>
       </div>
-      <nav className="space-y-0.5 max-h-[60vh] overflow-y-auto scrollbar-hide">
+      <nav className="space-y-0.5 max-h-[calc(100vh-11rem)] overflow-y-auto scrollbar-hide">
         {headings.map((h) => {
           const active = activeId === h.id;
           return (

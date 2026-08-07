@@ -22,10 +22,9 @@ function groupByMonth(posts) {
 }
 
 const monthNames = ['', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-const categoryColors = {
-  tech: 'bg-purple-200/60 text-purple-700',
-  life: 'bg-pink-200/60 text-pink-700',
-};
+
+// Slug may contain '/' and CJK (e.g. 'go/底层/gmp') — encode each segment
+const postHref = (slug) => '/posts/' + slug.split('/').map(encodeURIComponent).join('/');
 
 export default function Archive() {
   const grouped = groupByMonth(posts);
@@ -78,11 +77,11 @@ export default function Archive() {
               {/* Posts in this month */}
               <div className="space-y-2">
                 {monthPosts.map((post) => (
-                  <Link key={post.slug} to={`/posts/${post.slug}`} className="block group">
+                  <Link key={post.slug} to={postHref(post.slug)} className="block group">
                     <div className="liquid-glass rounded-xl px-4 py-3 flex items-center justify-between gap-3 transition-all duration-200 hover:border-white/30 hover:shadow-[0_4px_20px_rgba(31,38,135,0.15)]">
                       <div className="flex items-center gap-3 min-w-0">
-                        <span className={`shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full ${categoryColors[post.category] || 'bg-white/30 text-[var(--text-muted)]'}`}>
-                          {post.category === 'tech' ? '技术' : '生活'}
+                        <span className={`shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full ${post.categoryColor || 'bg-white/30 text-[var(--text-muted)]'}`}>
+                          {post.categoryLabel}
                         </span>
                         <span className="text-sm font-medium text-[var(--text-body)] truncate group-hover:text-[var(--text-heading)] transition-colors">
                           {post.title}
