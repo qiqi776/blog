@@ -2,16 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mirrors the `sakura` scheme so first paint matches the default theme
+   instead of flashing the old light palette before JS applies the vars. */
 :root {
-  --bg-primary: linear-gradient(135deg, #FFF0F5 0%, #FFE4E1 40%, #E6E6FA 100%);
-  --color-primary: #ec4899;
-  --color-secondary: #8b5cf6;
-  --color-accent: #f472b6;
-  --text-heading: #1e1b4b;
-  --text-body: #312e81;
-  --text-secondary: #6366f1;
-  --text-muted: #818cf8;
-  --is-dark: false;
+  --bg-primary: linear-gradient(155deg, #2a1b28 0%, #3d2839 45%, #241a26 100%);
+  --color-primary: #f472b6;
+  --color-secondary: #c084fc;
+  --color-accent: #fbcfe8;
+  --text-heading: #fce7f3;
+  --text-body: #f0d9e7;
+  --text-secondary: #e9a8c9;
+  --text-muted: #c79ab5;
+  --is-dark: true;
+}
+
+/* Body typeface: CJK serif, matching the reference blog's look. The variable
+   font is self-hosted (imported in main.jsx) rather than pulled from Google
+   Fonts, because fonts.googleapis.com is unreachable from mainland China and a
+   blocked stylesheet would silently drop every visitor there to the fallbacks.
+   `Noto Serif SC Variable` is the fontsource family name — the `Variable`
+   suffix is required, the static package uses the bare name. The rest are
+   platform fallbacks: Adobe and Google ship the same face under two names, then
+   Songti/SimSun cover macOS and Windows without any download. */
+:root {
+  --font-serif: "Noto Serif SC Variable", "Source Han Serif SC", "Noto Serif SC",
+                "Songti SC", "SimSun", serif;
+
+  /* Code typeface: mirrors the editor's own `editor.fontFamily`
+     (`Consolas, 'Microsoft YaHei', monospace`), so code here matches code in the
+     editor it was written in. Consolas leads, as it does there.
+
+     Unlike the body serif this can't be self-hosted — Consolas is proprietary
+     Microsoft and isn't redistributable, so this is a system stack and costs
+     zero bytes. Only Windows visitors get the literal face; the middle three
+     entries keep macOS and Linux on a real mono instead of dropping to the
+     generic, which in Safari resolves to Courier.
+
+     `Microsoft YaHei` is last and is deliberate, copied from the editor config:
+     Consolas has no Han glyphs, so CJK inside code falls through to it. Font
+     fallback is per-glyph, so the Latin monos ahead of it are skipped for Han
+     without affecting Latin. YaHei is proportional, which means CJK comments
+     won't align to the mono grid on Windows — same as in the editor. */
+  --font-mono: Consolas, "Menlo", "Monaco", "DejaVu Sans Mono",
+               "Microsoft YaHei", monospace;
 }
 
 @layer base {
@@ -23,13 +56,25 @@
   body {
     background: var(--bg-primary);
     color: var(--text-body);
-    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+    font-family: var(--font-serif);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition: background 0.3s ease, color 0.3s ease;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  /* 900 rather than 700, with the tracking pulled in: at heading sizes a serif
+     face reads thinner than the sans it replaced, and the extra weight is what
+     keeps titles feeling like titles. Negative tracking is safe on Han glyphs
+     (fixed advance width, so -0.02em only trims the gap) but would collide on
+     long Latin strings at small sizes, which is why h5/h6 keep 700 and no
+     tracking. Needs the variable font for 900 — the fallbacks synthesise it. */
+  h1, h2, h3, h4 {
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: var(--text-heading);
+  }
+
+  h5, h6 {
     font-weight: 700;
     color: var(--text-heading);
   }
@@ -205,12 +250,15 @@
     line-height: 1.8;
   }
 
+  /* Same treatment as the base headings above; repeated because these live in
+     @layer utilities and would otherwise lose to the base rule's specificity. */
   .prose-content h1,
   .prose-content h2,
   .prose-content h3,
   .prose-content h4 {
     color: var(--text-heading);
-    font-weight: 700;
+    font-weight: 900;
+    letter-spacing: -0.02em;
     line-height: 1.35;
     margin-top: 1.75em;
     margin-bottom: 0.5em;
@@ -235,7 +283,7 @@
 
   /* inline code */
   .prose-content code {
-    font-family: "Menlo", "Consolas", "Monaco", monospace;
+    font-family: var(--font-mono);
     font-size: 0.85em;
     padding: 0.15em 0.4em;
     border-radius: 6px;

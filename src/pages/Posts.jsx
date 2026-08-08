@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Tag, X } from 'lucide-react';
-import Navbar from '../components/blog/Navbar';
-import Footer from '../components/blog/Footer';
 import PostCard from '../components/blog/PostCard';
 import PillTabBar from '../components/ui/PillTabBar';
 import { posts, categories } from '../data/posts';
@@ -76,108 +74,102 @@ export default function Posts() {
   };
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-10">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-7"
+      >
+        <h1 className="text-3xl font-black text-[var(--text-heading)] mb-2">所有文章</h1>
+        <p className="text-[var(--text-muted)] text-sm">
+          共 <span className="font-semibold text-[var(--color-primary)]">{posts.length}</span> 篇文章
+          {filtered.length !== posts.length && (
+            <> · 当前筛选 <span className="font-semibold text-[var(--color-primary)]">{filtered.length}</span> 篇</>
+          )}
+        </p>
+      </motion.div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-10">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-7"
-        >
-          <h1 className="text-3xl font-black text-[var(--text-heading)] mb-2">所有文章</h1>
-          <p className="text-[var(--text-muted)] text-sm">
-            共 <span className="font-semibold text-[var(--color-primary)]">{posts.length}</span> 篇文章
-            {filtered.length !== posts.length && (
-              <> · 当前筛选 <span className="font-semibold text-[var(--color-primary)]">{filtered.length}</span> 篇</>
-            )}
-          </p>
-        </motion.div>
+      {/* Two-column: articles left, categories right */}
+      <div className="flex gap-7 items-start">
 
-        {/* Two-column: articles left, categories right */}
-        <div className="flex gap-7 items-start">
-
-          {/* ── Articles ────────────────────────────────────── */}
-          <div className="flex-1 min-w-0">
-            {/* Active search chip — search itself lives in the navbar */}
-            {searchQuery && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="mb-5 flex items-center gap-2 text-sm"
-              >
-                <span className="text-[var(--text-muted)]">搜索</span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-200/50 text-pink-700 font-medium">
-                  {searchQuery}
-                  <button
-                    onClick={clearSearch}
-                    aria-label="清除搜索"
-                    className="hover:opacity-70 transition-opacity"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              </motion.div>
-            )}
-
-            {/* Category pills — mobile only (sidebar takes over on lg+) */}
+        {/* ── Articles ────────────────────────────────────── */}
+        <div className="flex-1 min-w-0">
+          {/* Active search chip — search itself lives in the navbar */}
+          {searchQuery && (
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.14 }}
-              className="lg:hidden overflow-x-auto scrollbar-hide mb-6"
+              transition={{ duration: 0.3 }}
+              className="mb-5 flex items-center gap-2 text-sm"
             >
-              <PillTabBar
-                tabs={categories}
-                activeTab={activeCategory}
-                onChange={setActiveCategory}
-                className="min-w-max"
-              />
-            </motion.div>
-
-            {/* Grid */}
-            {filtered.length > 0 ? (
-              <>
-                <div
-                  key={`${activeCategory}-${searchQuery}-${page}`}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-5"
+              <span className="text-[var(--text-muted)]">搜索</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-200/50 text-pink-700 font-medium">
+                {searchQuery}
+                <button
+                  onClick={clearSearch}
+                  aria-label="清除搜索"
+                  className="hover:opacity-70 transition-opacity"
                 >
-                  {pageItems.map((post, i) => (
-                    <PostCard key={post.slug} post={post} index={i} />
-                  ))}
-                </div>
+                  <X size={12} />
+                </button>
+              </span>
+            </motion.div>
+          )}
 
-                <Pagination page={page} totalPages={totalPages} onChange={goTo} total={filtered.length} />
-              </>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20 text-[var(--text-muted)]"
-              >
-                <div className="text-4xl mb-3">🔍</div>
-                <p className="text-sm">没有找到匹配的文章</p>
-              </motion.div>
-            )}
-          </div>
-
-          {/* ── Category sidebar ────────────────────────────── */}
-          <motion.aside
-            initial={{ opacity: 0, x: 16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-            className="hidden lg:block w-48 shrink-0 sticky top-24 self-start"
+          {/* Category pills — mobile only (sidebar takes over on lg+) */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.14 }}
+            className="lg:hidden overflow-x-auto scrollbar-hide mb-6"
           >
-            <CategorySidebar cats={categories} active={activeCategory} onChange={setActiveCategory} />
-          </motion.aside>
+            <PillTabBar
+              tabs={categories}
+              activeTab={activeCategory}
+              onChange={setActiveCategory}
+              className="min-w-max"
+            />
+          </motion.div>
 
+          {/* Grid */}
+          {filtered.length > 0 ? (
+            <>
+              <div
+                key={`${activeCategory}-${searchQuery}-${page}`}
+                className="grid grid-cols-1 md:grid-cols-2 gap-5"
+              >
+                {pageItems.map((post, i) => (
+                  <PostCard key={post.slug} post={post} index={i} />
+                ))}
+              </div>
+
+              <Pagination page={page} totalPages={totalPages} onChange={goTo} total={filtered.length} />
+            </>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20 text-[var(--text-muted)]"
+            >
+              <div className="text-4xl mb-3">🔍</div>
+              <p className="text-sm">没有找到匹配的文章</p>
+            </motion.div>
+          )}
         </div>
-      </div>
 
-      <Footer />
+        {/* ── Category sidebar ────────────────────────────── */}
+        <motion.aside
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+          className="hidden lg:block w-48 shrink-0 sticky top-24 self-start"
+        >
+          <CategorySidebar cats={categories} active={activeCategory} onChange={setActiveCategory} />
+        </motion.aside>
+
+      </div>
     </div>
   );
 }

@@ -11,7 +11,7 @@ const navLinks = [
   { to: '/about', label: '关于' },
 ];
 
-const schemeLabels = { aurora: '极光', midnight: '深夜', spring: '春日' };
+const schemeLabels = { sakura: '樱夜', aurora: '极光', midnight: '深夜', spring: '春日' };
 
 export default function Navbar() {
   const location = useLocation();

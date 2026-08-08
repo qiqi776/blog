@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { marked } from 'marked';
 import { ArrowLeft, ArrowRight, Calendar, Clock, AlignLeft } from 'lucide-react';
-import Navbar from '../components/blog/Navbar';
-import Footer from '../components/blog/Footer';
 import PostCard from '../components/blog/PostCard';
 import { getPostBySlug, posts } from '../data/posts';
 
@@ -60,7 +58,7 @@ export default function PostDetail() {
     if (!post) return;
     setHtml(addIds(marked.parse(stripLeadingHeading(post.content))));
     setToc(parseToc(post.content));
-    window.scrollTo({ top: 0 });
+    // Scroll reset is handled by Layout's <ScrollReset /> on route change
   }, [post?.slug]);
 
   // Highlight active heading via IntersectionObserver
@@ -81,13 +79,10 @@ export default function PostDetail() {
 
   if (!post) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center flex-col gap-4 text-[var(--text-muted)]">
-          <div className="text-5xl">404</div>
-          <p className="text-sm">文章不存在</p>
-          <button onClick={() => navigate('/posts')} className="glass-button text-sm">返回列表</button>
-        </div>
+      <div className="min-h-[60vh] flex items-center justify-center flex-col gap-4 text-[var(--text-muted)]">
+        <div className="text-5xl">404</div>
+        <p className="text-sm">文章不存在</p>
+        <button onClick={() => navigate('/posts')} className="glass-button text-sm">返回列表</button>
       </div>
     );
   }
@@ -101,10 +96,7 @@ export default function PostDetail() {
   const nextPost = curIdx < siblings.length - 1 ? siblings[curIdx + 1] : null;
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-28 pb-10">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-28 pb-10">
         {/* Back */}
         <motion.div
           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
@@ -200,10 +192,7 @@ export default function PostDetail() {
             <TableOfContents headings={toc} activeId={activeId} />
           </motion.aside>
 
-        </div>
       </div>
-
-      <Footer />
     </div>
   );
 }
