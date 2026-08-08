@@ -74,7 +74,7 @@ export default function Posts() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-10">
+    <div className="page-shell pt-28 pb-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

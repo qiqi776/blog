@@ -29,7 +29,7 @@ export default function Archive() {
   const totalPosts = posts.length;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-28 pb-10">
+    <div className="page-shell pt-28 pb-10">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -43,8 +43,11 @@ export default function Archive() {
         </p>
       </motion.div>
 
-      {/* Timeline */}
-      <div className="relative">
+      {/* Timeline. Capped narrower than the shell on purpose: the shell width
+          exists so this page's left edge lines up with the navbar and every
+          other page, but a one-line-per-post timeline stretched to 1152px would
+          leave the dates and titles marooned at opposite ends. */}
+      <div className="relative max-w-3xl">
         {/* vertical line */}
         <div className="absolute left-[11px] top-2 bottom-2 w-px bg-gradient-to-b from-pink-300/60 via-purple-300/40 to-transparent" />
 

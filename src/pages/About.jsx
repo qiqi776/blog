@@ -5,7 +5,7 @@ import { GITHUB, projects, skills, langColors } from '../data/profile';
 
 export default function About() {
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 pb-10 space-y-10">
+    <div className="page-shell pt-28 pb-10 space-y-10">
 
       {/* ── Profile ── */}
       <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>

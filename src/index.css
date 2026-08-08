@@ -243,11 +243,35 @@
   .animate-pulse-glow      { animation: pulse-glow 2.5s ease-in-out infinite; }
   .animate-float           { animation: float 4s ease-in-out infinite; }
 
+  /* ── Page shell ──
+     One place that decides the site's left/right edges. Every page plus Navbar
+     and Footer use this, because the per-file `max-w-*` values had drifted:
+     nav/footer sat at 1024px while Home/Posts sat at 1152px, so the nav was
+     inset 64px from the content on each side — visible as soon as you scrolled.
+     72rem (1152px) matches the reference layout's article container. */
+  .page-shell {
+    width: 100%;
+    max-width: 72rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  @media (min-width: 640px) {
+    .page-shell { padding-left: 1.5rem; padding-right: 1.5rem; }
+  }
+
   /* ── Markdown prose (used by PostDetail via .prose-content) ── */
+  /* Body size steps up at the md breakpoint rather than staying fixed. 1.15rem
+     (18.4px) on desktop is the reference layout's paragraph size; the old flat
+     0.9375rem (15px) was 23% smaller. Measured against the article column this
+     lands at ~41 CJK glyphs per line, inside the 35-45 comfortable band — the
+     old pairing was 15px stretched over 44 glyphs, which is the bad
+     combination: small type on long lines. */
   .prose-content {
     color: var(--text-body);
-    font-size: 0.9375rem;
-    line-height: 1.8;
+    font-size: 1rem;
+    line-height: 1.75;
   }
 
   /* Same treatment as the base headings above; repeated because these live in
@@ -263,10 +287,23 @@
     margin-top: 1.75em;
     margin-bottom: 0.5em;
   }
-  .prose-content h1 { font-size: 1.5rem; }
-  .prose-content h2 { font-size: 1.25rem; padding-bottom: 0.3em; border-bottom: 1px solid rgba(255,255,255,0.2); }
-  .prose-content h3 { font-size: 1.05rem; }
-  .prose-content h4 { font-size: 0.95rem; }
+  /* h2 carries the most weight here: PostDetail strips the article's leading
+     heading (the title already sits in the card header), so h2 is the top level
+     that actually renders in the body. The reference gives its h2 2.2rem, but
+     its h1 is not stripped — matching on role rather than tag name is why h2
+     gets the larger step. */
+  .prose-content h1 { font-size: 1.75rem; }
+  .prose-content h2 { font-size: 1.5rem; padding-bottom: 0.3em; border-bottom: 1px solid rgba(255,255,255,0.2); }
+  .prose-content h3 { font-size: 1.2rem; }
+  .prose-content h4 { font-size: 1.05rem; }
+
+  @media (min-width: 768px) {
+    .prose-content { font-size: 1.15rem; line-height: 1.85; }
+    .prose-content h1 { font-size: 2.6rem; }
+    .prose-content h2 { font-size: 2rem; }
+    .prose-content h3 { font-size: 1.4rem; }
+    .prose-content h4 { font-size: 1.15rem; }
+  }
 
   .prose-content p { margin-bottom: 1em; }
 
@@ -301,11 +338,13 @@
     overflow-x: auto;
     margin: 1.25em 0;
   }
+  /* `em` not `rem`, so code tracks the body step-up at md instead of staying
+     pinned at 13px while the prose around it grows to 18.4px. */
   .prose-content pre code {
     background: none;
     color: var(--text-body);
     padding: 0;
-    font-size: 0.825rem;
+    font-size: 0.85em;
     line-height: 1.7;
   }
 
@@ -331,7 +370,7 @@
     width: 100%;
     border-collapse: collapse;
     margin: 1.25em 0;
-    font-size: 0.875rem;
+    font-size: 0.9em;
     overflow-x: auto;
     display: block;
   }

@@ -520,7 +520,7 @@ export default function Home() {
         <span className="w-px h-16 bg-gradient-to-b from-[var(--color-primary)]/50 to-transparent" />
       </div>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 pt-28 pb-10 space-y-5">
+      <div className="relative z-10 page-shell pt-28 pb-10 space-y-5">
 
         {/* ── Hero ─────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-6 items-center mb-4">

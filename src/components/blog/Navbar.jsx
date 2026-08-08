@@ -35,7 +35,7 @@ export default function Navbar() {
           scrolled ? 'shadow-[0_2px_16px_rgba(31,38,135,0.14)]' : '!shadow-none'
         }`}
       >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="page-shell">
           <div className="h-[72px] flex items-center justify-between relative">
             {/* Logo — left */}
             <Link to="/" className="flex items-center gap-2.5 group shrink-0 relative z-10">

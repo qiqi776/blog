@@ -96,7 +96,7 @@ export default function PostDetail() {
   const nextPost = curIdx < siblings.length - 1 ? siblings[curIdx + 1] : null;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-28 pb-10">
+    <div className="page-shell pt-28 pb-10">
         {/* Back */}
         <motion.div
           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
@@ -187,7 +187,7 @@ export default function PostDetail() {
           {/* ── TOC sidebar: sticky to viewport, internal scroll when tall ── */}
           <motion.aside
             initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.1 }}
-            className="hidden xl:block w-52 shrink-0 sticky top-24 self-start"
+            className="hidden lg:block w-60 shrink-0 sticky top-24 self-start"
           >
             <TableOfContents headings={toc} activeId={activeId} />
           </motion.aside>
