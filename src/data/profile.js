@@ -3,7 +3,15 @@
 
 export const GITHUB = 'https://github.com/qiqi776';
 export const EMAIL = 'mailto:2211546824@qq.com';
-export const AVATAR = 'https://github.com/qiqi776.png?size=200';
+// Self-hosted copy of the GitHub avatar rather than the `github.com/<user>.png`
+// redirect. Same reasoning as the fonts: an external request on every page load
+// is a third-party dependency for something that never changes, and GitHub's
+// avatar CDN is not reliably fast from mainland China. Regenerate with:
+//   curl -sL https://github.com/qiqi776.png?size=400 -o /tmp/a.jpg
+//   convert /tmp/a.jpg -resize 200x200 -quality 85 public/avatar.jpg
+// 200px covers both display sizes at 2x DPR (36px navbar, 80px About card).
+// JPEG, not PNG: it's a photo, and q85 is 13.5 KB against PNG24's 79.7 KB.
+export const AVATAR = '/avatar.jpg';
 export const HANDLE = 'qiqi776';
 export const DISPLAY_NAME = '追忆成空';
 

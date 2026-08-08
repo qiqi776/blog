@@ -83,7 +83,7 @@ export default function Posts() {
         className="mb-7"
       >
         <h1 className="text-3xl font-black text-[var(--text-heading)] mb-2">所有文章</h1>
-        <p className="text-[var(--text-muted)] text-sm">
+        <p className="text-[var(--text-muted)] text-base md:text-lg">
           共 <span className="font-semibold text-[var(--color-primary)]">{posts.length}</span> 篇文章
           {filtered.length !== posts.length && (
             <> · 当前筛选 <span className="font-semibold text-[var(--color-primary)]">{filtered.length}</span> 篇</>
@@ -102,7 +102,7 @@ export default function Posts() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="mb-5 flex items-center gap-2 text-sm"
+              className="mb-5 flex items-center gap-2 text-base md:text-lg"
             >
               <span className="text-[var(--text-muted)]">搜索</span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-pink-200/50 text-pink-700 font-medium">
@@ -154,7 +154,7 @@ export default function Posts() {
               className="text-center py-20 text-[var(--text-muted)]"
             >
               <div className="text-4xl mb-3">🔍</div>
-              <p className="text-sm">没有找到匹配的文章</p>
+              <p className="text-base md:text-lg">没有找到匹配的文章</p>
             </motion.div>
           )}
         </div>
@@ -180,7 +180,7 @@ function CategorySidebar({ cats, active, onChange }) {
     <div className="liquid-glass rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/15">
         <Tag size={12} className="text-[var(--color-primary)]" />
-        <span className="text-xs font-semibold text-[var(--text-heading)] tracking-wide uppercase">分类</span>
+        <span className="text-sm md:text-base font-semibold text-[var(--text-heading)] tracking-wide uppercase">分类</span>
       </div>
       <nav className="space-y-0.5">
         {cats.map((c) => {
@@ -189,7 +189,7 @@ function CategorySidebar({ cats, active, onChange }) {
             <button
               key={c.id}
               onClick={() => onChange(c.id)}
-              className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-xs transition-all duration-150 ${
+              className={`w-full flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-sm md:text-base transition-all duration-150 ${
                 on
                   ? 'bg-pink-100/40 text-[var(--color-primary)] font-semibold'
                   : 'text-[var(--text-muted)] hover:text-[var(--text-body)] hover:bg-white/10'
@@ -197,7 +197,7 @@ function CategorySidebar({ cats, active, onChange }) {
             >
               <span className="truncate text-left">{c.label}</span>
               <span
-                className={`shrink-0 text-[10px] tabular-nums px-1.5 py-0.5 rounded-full ${
+                className={`shrink-0 text-xs tabular-nums px-1.5 py-0.5 rounded-full ${
                   on ? 'bg-white/50' : 'bg-white/20'
                 }`}
               >
@@ -216,7 +216,7 @@ function Pagination({ page, totalPages, onChange, total }) {
   if (totalPages <= 1) return null;
 
   const btn =
-    'w-8 h-8 flex items-center justify-center rounded-xl text-xs transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed';
+    'w-8 h-8 flex items-center justify-center rounded-xl text-sm md:text-base transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed';
 
   return (
     <motion.nav
@@ -238,7 +238,7 @@ function Pagination({ page, totalPages, onChange, total }) {
 
         {buildPageList(page, totalPages).map((p, i) =>
           p === '…' ? (
-            <span key={`gap-${i}`} className="w-6 text-center text-xs text-[var(--text-muted)]">
+            <span key={`gap-${i}`} className="w-6 text-center text-sm md:text-base text-[var(--text-muted)]">
               …
             </span>
           ) : (
@@ -267,7 +267,7 @@ function Pagination({ page, totalPages, onChange, total }) {
         </button>
       </div>
 
-      <p className="text-xs text-[var(--text-muted)]">
+      <p className="text-sm md:text-base text-[var(--text-muted)]">
         第 {page} / {totalPages} 页 · 共 {total} 篇
       </p>
     </motion.nav>

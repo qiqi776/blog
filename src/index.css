@@ -28,23 +28,24 @@
   --font-serif: "Noto Serif SC Variable", "Source Han Serif SC", "Noto Serif SC",
                 "Songti SC", "SimSun", serif;
 
-  /* Code typeface: mirrors the editor's own `editor.fontFamily`
-     (`Consolas, 'Microsoft YaHei', monospace`), so code here matches code in the
-     editor it was written in. Consolas leads, as it does there.
+  /* Code typeface: self-hosted JetBrains Mono, which is what the editor's own
+     config reaches for first (`editor.fontFamily` has a commented-out
+     JetBrainsMono line above the active Consolas one, and the integrated
+     terminal uses it). Consolas can't be shipped — proprietary Microsoft, not
+     redistributable — so it stays as the next entry rather than the first: any
+     visitor who already has it gets editor parity if the webfont fails.
 
-     Unlike the body serif this can't be self-hosted — Consolas is proprietary
-     Microsoft and isn't redistributable, so this is a system stack and costs
-     zero bytes. Only Windows visitors get the literal face; the middle three
-     entries keep macOS and Linux on a real mono instead of dropping to the
-     generic, which in Safari resolves to Courier.
+     Self-hosting is cheap here in a way the CJK serif wasn't: 264 KB and 12
+     woff2 for the whole variable family, because this is Latin-only. Every
+     visitor sees the same face, which a pure system stack can't promise.
 
      `Microsoft YaHei` is last and is deliberate, copied from the editor config:
-     Consolas has no Han glyphs, so CJK inside code falls through to it. Font
-     fallback is per-glyph, so the Latin monos ahead of it are skipped for Han
-     without affecting Latin. YaHei is proportional, which means CJK comments
-     won't align to the mono grid on Windows — same as in the editor. */
-  --font-mono: Consolas, "Menlo", "Monaco", "DejaVu Sans Mono",
-               "Microsoft YaHei", monospace;
+     no Latin mono has Han glyphs, so CJK inside code falls through to it. Font
+     fallback is per-glyph, so the monos ahead of it are skipped for Han without
+     affecting Latin. YaHei is proportional, which means CJK comments won't
+     align to the mono grid on Windows — same as in the editor. */
+  --font-mono: "JetBrains Mono Variable", Consolas, "Menlo", "Monaco",
+               "DejaVu Sans Mono", "Microsoft YaHei", monospace;
 }
 
 @layer base {
@@ -77,6 +78,23 @@
   h5, h6 {
     font-weight: 700;
     color: var(--text-heading);
+  }
+
+  /* Small type gets 500 instead of 400. Measured on the sakura backdrop: a
+     serif face at 10-12px covers ~0.33 of each glyph cell against the sans's
+     ~0.44, which drops effective contrast to 1.89 even though the nominal
+     ratio is unchanged (nominal only compares two flat colours and ignores how
+     much of the background a stroke actually covers). 500 puts the strokes
+     back without touching colour, and costs nothing — the variable font
+     already carries every weight in the chunk that's already downloaded.
+
+     Deliberately in @layer base, not utilities: Tailwind's utilities layer
+     emits later, so the 5 places that pair a small size with an explicit
+     `font-bold`/`font-semibold`/`font-medium` still win. Only the ~45 small
+     spans with no weight of their own are affected. */
+  .text-xs,
+  .text-\[11px\] {
+    font-weight: 500;
   }
 }
 
@@ -261,6 +279,30 @@
     .page-shell { padding-left: 1.5rem; padding-right: 1.5rem; }
   }
 
+  /* ── Archive timeline ── */
+  /* Ported from the reference blog's own `.dash-line`. The dashed rule is drawn
+     per row as a ::before, not as one tall absolutely-positioned element. That
+     is what makes it robust: each row draws its own segment, so rows of
+     differing height still tile into an unbroken line and nothing needs to stay
+     in sync with the list length. The old timeline used a single gradient bar
+     pinned with `top-2 bottom-2`, which is exactly the fragile version.
+
+     `height: 100%` with `transform: translateY(-50%)` and no `top` is copied
+     verbatim and is the trick: the segment spans -50% to +50% of its own row, so
+     row N's segment meets row N+1's precisely at their shared edge. */
+  .dash-line { position: relative; }
+  .dash-line::before {
+    content: "";
+    position: absolute;
+    width: 10%;
+    height: 100%;
+    left: calc(50% - 1px);
+    border-left: 2px dashed rgba(255, 255, 255, 0.18);
+    pointer-events: none;
+    transition: all 0.3s;
+    transform: translateY(-50%);
+  }
+
   /* ── Markdown prose (used by PostDetail via .prose-content) ── */
   /* Body size steps up at the md breakpoint rather than staying fixed. 1.15rem
      (18.4px) on desktop is the reference layout's paragraph size; the old flat
@@ -268,10 +310,22 @@
      lands at ~41 CJK glyphs per line, inside the 35-45 comfortable band — the
      old pairing was 15px stretched over 44 glyphs, which is the bad
      combination: small type on long lines. */
+  /* The 46em cap only bites in one place, and that place is why it exists: at
+     1023px the TOC sidebar hasn't appeared yet (it enters at lg), so the article
+     column briefly owns the full shell and lines stretch to ~49 glyphs. 46em is
+     846px against an 18.4px body, which is wider than the 836px column at
+     1280px+ — so the main desktop case is untouched — but narrower than the
+     975px column at 1023px, clamping that step back to ~42 glyphs.
+
+     em rather than ch or a fixed px: it tracks the responsive font-size, so the
+     cap scales with the type instead of drifting out of proportion at the md
+     step. No `margin-inline: auto` on purpose — centring would break the text's
+     left edge away from the h1 above it, which shares the card's padding. */
   .prose-content {
     color: var(--text-body);
     font-size: 1rem;
     line-height: 1.75;
+    max-width: 46em;
   }
 
   /* Same treatment as the base headings above; repeated because these live in
@@ -317,6 +371,17 @@
 
   .prose-content strong { font-weight: 700; color: var(--text-heading); }
   .prose-content em     { font-style: italic; }
+
+  /* Programming ligatures, matching the editor's `editor.fontLigatures: true`.
+     This only became worth setting once the face changed: Consolas has no
+     programming ligatures at all, so the property was inert before. JetBrains
+     Mono ships them, so `->`, `=>`, `!=`, `>=` now join as they do in the
+     editor. `contextual` rather than `common` keeps it to the calt feature the
+     font actually uses for these, and leaves prose ligatures alone. */
+  .prose-content code,
+  .font-mono {
+    font-variant-ligatures: contextual;
+  }
 
   /* inline code */
   .prose-content code {

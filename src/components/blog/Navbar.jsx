@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sparkles, Search } from 'lucide-react';
+import { Menu, X, Search } from 'lucide-react';
 import { useBackground } from '../../context/BackgroundContext';
+import { AVATAR, DISPLAY_NAME } from '../../data/profile';
 
 const navLinks = [
   { to: '/', label: '首页' },
@@ -39,10 +40,23 @@ export default function Navbar() {
           <div className="h-[72px] flex items-center justify-between relative">
             {/* Logo — left */}
             <Link to="/" className="flex items-center gap-2.5 group shrink-0 relative z-10">
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                <Sparkles size={17} className="text-white" />
-              </div>
-              <span className="font-bold text-base tracking-wide gradient-text">追忆成空</span>
+              {/* The GitHub avatar as the mark. Served from /avatar.jpg rather
+                  than github.com: an <img> pointing at github.com would make
+                  every page load wait on a request that is slow or blocked from
+                  mainland China, and a broken logo is the first thing a visitor
+                  sees. Same reasoning as self-hosting the fonts.
+
+                  Rendered at 36px against a 200px source, so it stays sharp on
+                  2x displays. The ring replaces the old gradient disc, which was
+                  the only thing giving the mark an edge against the glass bar. */}
+              <img
+                src={AVATAR}
+                alt=""
+                width="36"
+                height="36"
+                className="w-9 h-9 rounded-full object-cover shadow-md ring-1 ring-white/40 group-hover:scale-105 transition-transform duration-200"
+              />
+              <span className="font-bold text-xl tracking-wide gradient-text">{DISPLAY_NAME}</span>
             </Link>
 
             {/* Nav — absolutely centered, so side widths never shift it */}
@@ -53,7 +67,7 @@ export default function Navbar() {
                   <Link
                     key={to}
                     to={to}
-                    className={`relative px-5 py-2 rounded-full text-[15px] font-medium transition-colors duration-200 ${
+                    className={`relative px-5 py-2 rounded-full text-base md:text-lg font-medium transition-colors duration-200 ${
                       isActive
                         ? 'text-pink-700'
                         : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
@@ -130,7 +144,7 @@ export default function Navbar() {
                   <Link
                     key={to}
                     to={to}
-                    className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    className={`block px-4 py-2.5 rounded-xl text-base md:text-lg font-medium transition-all duration-200 ${
                       isActive
                         ? 'bg-pink-200/60 text-pink-700'
                         : 'text-[var(--text-muted)] hover:bg-white/20 hover:text-[var(--text-body)]'
@@ -142,13 +156,13 @@ export default function Navbar() {
               })}
               {/* Theme buttons */}
               <div className="flex items-center gap-3 px-4 pt-2 border-t border-white/20">
-                <span className="text-xs text-[var(--text-muted)]">主题</span>
+                <span className="text-sm md:text-base text-[var(--text-muted)]">主题</span>
                 {schemes.map((s) => (
                   <button
                     key={s.id}
                     onClick={() => changeScheme(s.id)}
                     title={s.name}
-                    className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg transition-all ${
+                    className={`flex items-center gap-1.5 text-sm md:text-base px-2 py-1 rounded-lg transition-all ${
                       currentScheme.scheme.id === s.id
                         ? 'bg-white/30 text-[var(--text-body)] font-medium'
                         : 'text-[var(--text-muted)] hover:bg-white/20'
@@ -219,7 +233,7 @@ function SearchBox({ mobile = false, onSubmitted }) {
         onChange={handleChange}
         placeholder="搜索文章…"
         aria-label="搜索文章"
-        className={`${mobile ? 'w-full py-2.5' : 'w-36 focus:w-48 py-2'} text-sm pl-9 ${
+        className={`${mobile ? 'w-full py-2.5' : 'w-36 focus:w-48 py-2'} text-base md:text-lg pl-9 ${
           value ? 'pr-8' : 'pr-3'
         } rounded-full bg-white/20 border border-white/25 focus:outline-none focus:ring-2 focus:ring-pink-300/40 text-[var(--text-body)] placeholder:text-[var(--text-muted)] transition-all duration-300`}
       />

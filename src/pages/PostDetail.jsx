@@ -81,8 +81,8 @@ export default function PostDetail() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center flex-col gap-4 text-[var(--text-muted)]">
         <div className="text-5xl">404</div>
-        <p className="text-sm">文章不存在</p>
-        <button onClick={() => navigate('/posts')} className="glass-button text-sm">返回列表</button>
+        <p className="text-base md:text-lg">文章不存在</p>
+        <button onClick={() => navigate('/posts')} className="glass-button text-base md:text-lg">返回列表</button>
       </div>
     );
   }
@@ -102,7 +102,7 @@ export default function PostDetail() {
           initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
           className="mb-5"
         >
-          <Link to="/posts" className="inline-flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-body)] transition-colors">
+          <Link to="/posts" className="inline-flex items-center gap-1.5 text-base md:text-lg text-[var(--text-muted)] hover:text-[var(--text-body)] transition-colors">
             <ArrowLeft size={14} /> 返回列表
           </Link>
         </motion.div>
@@ -120,13 +120,13 @@ export default function PostDetail() {
               {/* Header */}
               <div className="px-7 sm:px-10 pt-7 pb-5 border-b border-white/15">
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${post.categoryColor}`}>
+                  <span className={`text-sm md:text-base font-medium px-2.5 py-1 rounded-full ${post.categoryColor}`}>
                     {post.categoryLabel}
                   </span>
-                  <span className="text-xs text-[var(--text-muted)] flex items-center gap-1">
+                  <span className="text-sm md:text-base text-[var(--text-muted)] flex items-center gap-1">
                     <Clock size={11} /> {post.readTime}
                   </span>
-                  <span className="text-xs text-[var(--text-muted)] flex items-center gap-1">
+                  <span className="text-sm md:text-base text-[var(--text-muted)] flex items-center gap-1">
                     <Calendar size={11} /> {post.date}
                   </span>
                 </div>
@@ -157,8 +157,8 @@ export default function PostDetail() {
                   >
                     <ArrowLeft size={16} className="shrink-0 text-[var(--text-muted)] group-hover:text-[var(--color-primary)] transition-colors" />
                     <div className="min-w-0">
-                      <div className="text-[10px] text-[var(--text-muted)] mb-0.5 uppercase tracking-wide">上一篇</div>
-                      <div className="text-sm font-semibold text-[var(--text-heading)] truncate group-hover:gradient-text transition-all">
+                      <div className="text-xs text-[var(--text-muted)] mb-0.5 uppercase tracking-wide">上一篇</div>
+                      <div className="text-base md:text-lg font-semibold text-[var(--text-heading)] truncate group-hover:gradient-text transition-all">
                         {prevPost.title}
                       </div>
                     </div>
@@ -172,8 +172,8 @@ export default function PostDetail() {
                     className="group liquid-glass rounded-2xl px-5 py-4 flex items-center gap-3 text-right hover:border-white/30 transition-all duration-200 justify-end"
                   >
                     <div className="min-w-0">
-                      <div className="text-[10px] text-[var(--text-muted)] mb-0.5 uppercase tracking-wide">下一篇</div>
-                      <div className="text-sm font-semibold text-[var(--text-heading)] truncate group-hover:gradient-text transition-all">
+                      <div className="text-xs text-[var(--text-muted)] mb-0.5 uppercase tracking-wide">下一篇</div>
+                      <div className="text-base md:text-lg font-semibold text-[var(--text-heading)] truncate group-hover:gradient-text transition-all">
                         {nextPost.title}
                       </div>
                     </div>
@@ -204,7 +204,7 @@ function TableOfContents({ headings, activeId }) {
     <div className="liquid-glass rounded-2xl p-4">
       <div className="flex items-center gap-2 mb-3 pb-2 border-b border-white/15">
         <AlignLeft size={12} className="text-[var(--color-primary)]" />
-        <span className="text-xs font-semibold text-[var(--text-heading)] tracking-wide uppercase">目录</span>
+        <span className="text-sm md:text-base font-semibold text-[var(--text-heading)] tracking-wide uppercase">目录</span>
       </div>
       <nav className="space-y-0.5 max-h-[calc(100vh-11rem)] overflow-y-auto scrollbar-hide">
         {headings.map((h) => {
@@ -217,7 +217,7 @@ function TableOfContents({ headings, activeId }) {
                 e.preventDefault();
                 document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className={`flex items-start gap-1.5 py-1 leading-snug text-[11px] transition-all duration-150 rounded-lg px-1.5 ${
+              className={`flex items-start gap-1.5 py-1 leading-snug text-sm transition-all duration-150 rounded-lg px-1.5 ${
                 h.level === 3 ? 'pl-4' : ''
               } ${
                 active

@@ -38,13 +38,13 @@ export default function PillTabBar({ tabs = [], activeTab, onChange, className =
               key={tab.id}
               ref={(el) => { if (el) tabRefs.current[tab.id] = el; }}
               onClick={() => onChange?.(tab.id)}
-              className={`group flex-1 flex flex-row items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors relative overflow-hidden z-10 ${
+              className={`group flex-1 flex flex-row items-center justify-center gap-2 px-4 py-2 rounded-full text-base md:text-lg font-medium transition-colors relative overflow-hidden z-10 ${
                 isActive ? 'text-[#be185d]' : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
               }`}
             >
               <span className="relative z-10 whitespace-nowrap">{tab.label}</span>
               {tab.count !== undefined && (
-                <span className={`relative z-10 text-[10px] px-1.5 py-0.5 rounded-full ${
+                <span className={`relative z-10 text-xs px-1.5 py-0.5 rounded-full ${
                   isActive ? 'bg-pink-500/30 text-pink-700' : 'bg-white/30 text-[var(--text-muted)]'
                 }`}>{tab.count}</span>
               )}
