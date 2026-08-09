@@ -1,5 +1,6 @@
 // Shared profile data — consumed by both the Home dashboard and the About page,
 // so project/skill edits only need to happen in one place.
+import { withBasePath } from "../lib/paths";
 
 export const GITHUB = "https://github.com/qiqi776";
 export const EMAIL = "mailto:2211546824@qq.com";
@@ -11,7 +12,7 @@ export const EMAIL = "mailto:2211546824@qq.com";
 //   convert /tmp/a.jpg -resize 200x200 -quality 85 public/avatar.jpg
 // 200px covers both display sizes at 2x DPR (36px navbar, 80px About card).
 // JPEG, not PNG: it's a photo, and q85 is 13.5 KB against PNG24's 79.7 KB.
-export const AVATAR = "/avatar.jpg";
+export const AVATAR = withBasePath("/avatar.jpg");
 export const HANDLE = "追忆成空";
 export const DISPLAY_NAME = "追忆成空";
 

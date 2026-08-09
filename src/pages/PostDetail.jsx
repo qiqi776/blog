@@ -5,6 +5,7 @@ import { marked } from 'marked';
 import { ArrowLeft, ArrowRight, Calendar, Clock, AlignLeft } from 'lucide-react';
 import PostCard from '../components/blog/PostCard';
 import { getPostBySlug, posts } from '../data/posts';
+import { withBasePath } from '../lib/paths';
 
 marked.setOptions({ gfm: true, breaks: false });
 
@@ -32,6 +33,11 @@ const stripLeadingHeading = (content) => {
   return lines.join('\n');
 };
 
+const addBasePathToRootRelativeAttrs = (html) =>
+  html.replace(/\b(src|href)=(["'])(\/(?!\/)[^"']*)\2/g, (_, attr, quote, path) => {
+    return `${attr}=${quote}${withBasePath(path)}${quote}`;
+  });
+
 // Extract headings from raw markdown for TOC
 const parseToc = (content) => {
   const list = [];
@@ -56,7 +62,7 @@ export default function PostDetail() {
 
   useEffect(() => {
     if (!post) return;
-    setHtml(addIds(marked.parse(stripLeadingHeading(post.content))));
+    setHtml(addBasePathToRootRelativeAttrs(addIds(marked.parse(stripLeadingHeading(post.content)))));
     setToc(parseToc(post.content));
     // Scroll reset is handled by Layout's <ScrollReset /> on route change
   }, [post?.slug]);

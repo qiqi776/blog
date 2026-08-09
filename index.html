@@ -2,7 +2,23 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- The GitHub avatar, same mark as the navbar. Generated from
+         public/avatar.jpg, circle-cropped to match how it renders everywhere
+         else (Navbar and About both use rounded-full). Regenerate with:
+           python3 -c "
+         from PIL import Image, ImageDraw
+         b = Image.open('public/avatar.jpg').resize((256,256), Image.LANCZOS).convert('RGBA')
+         m = Image.new('L', (256,256), 0); ImageDraw.Draw(m).ellipse((0,0,255,255), fill=255)
+         b.putalpha(m); b.resize((32,32), Image.LANCZOS).save('public/favicon.png', optimize=True)"
+
+         Cut at 256 and downscaled to 32 rather than masked at 32 directly:
+         PIL's ellipse has a hard edge, so the LANCZOS downscale is what
+         antialiases the rim. Masking at final size gives a visibly jagged
+         circle at this scale.
+
+         %BASE_URL% and not a bare /: base is "/blog/", so a root-absolute
+         path would 404 on the deployed project site. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="%BASE_URL%favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>追忆成空 的博客</title>
   </head>

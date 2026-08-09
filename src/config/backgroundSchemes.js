@@ -1,3 +1,5 @@
+import { withBasePath } from '../lib/paths';
+
 // Two photo backdrops, both generated ahead of time from sources in
 // `assets-src/` (outside public/, so the multi-MB originals never ship).
 // Pre-blurring here instead of a CSS `filter: blur()` keeps the paint cost at
@@ -47,7 +49,7 @@ export const backgroundSchemes = {
     // muted 4.5:1 full-width, and 4.9:1 inside the max-w-6xl text column. Lower
     // than the old figures precisely because the photo is now visible; all three
     // still clear AA. Getting muted to 4.5 is why it moved off #b08ba3 below.
-    backgroundImage: '/bg-sakura.jpg',
+    backgroundImage: withBasePath('/bg-sakura.jpg'),
     imageOverlay:
       'linear-gradient(to bottom, rgba(22,15,22,0.78) 0%, rgba(26,17,25,0.80) 20%, rgba(26,17,25,0.82) 40%, rgba(26,17,25,0.81) 62%, rgba(19,12,19,0.78) 79%, rgba(19,12,19,0.80) 100%)',
     isDark: true,
