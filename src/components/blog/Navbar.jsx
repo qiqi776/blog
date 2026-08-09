@@ -17,26 +17,91 @@ const navLinks = [
 ];
 
 
+// Scroll-direction thresholds.
+//
+// DEAD_ZONE exists because a single scroll gesture is not monotonic: trackpad
+// momentum and phone rubber-banding emit a few pixels the other way mid-flick.
+// Reacting to every sign change makes the bar strobe, so a direction has to be
+// worth at least this many pixels before it counts.
+//
+// TOP_ZONE keeps the bar pinned near the top of the page regardless of
+// direction. Without it, landing mid-page and flicking down once hides the bar
+// while the hero is still on screen. It matches the 68px bar height, so the bar
+// is only allowed to hide once it has something to hide behind.
+const DEAD_ZONE = 6;
+const TOP_ZONE = 68;
+
 export default function Navbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    let lastY = window.scrollY;
+    let queued = false;
+
+    // Scroll fires far more often than the screen repaints. Reading and setting
+    // state per event throws away work and can tear the transform mid-frame, so
+    // the handler only marks itself dirty and the rAF callback does the reading.
+    const read = () => {
+      queued = false;
+      const y = window.scrollY;
+      const delta = y - lastY;
+
+      setScrolled(y > 20);
+
+      if (y <= TOP_ZONE) setHidden(false);
+      else if (delta > DEAD_ZONE) setHidden(true);
+      else if (delta < -DEAD_ZONE) setHidden(false);
+
+      // Only advance the reference point once the move was decisive enough to
+      // act on. Updating it on every event instead would reset the baseline each
+      // frame, so a slow drag emitting 1-2px per frame could never accumulate
+      // past DEAD_ZONE and the bar would ignore the gesture entirely.
+      if (Math.abs(delta) > DEAD_ZONE) lastY = y;
+    };
+
+    const onScroll = () => {
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(read);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    read(); // sync state to a restored scroll position on mount
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // close menu on route change
+  // Close the menu on route change, and force the bar back into view.
+  //
+  // Layout's ScrollReset jumps to the top on navigation, but a programmatic
+  // scrollTo does not guarantee a scroll event before the new page paints. So
+  // clicking a link while scrolled down (bar hidden) could paint the incoming
+  // page with no navbar until the next scroll. Resetting here makes the bar's
+  // state match the scroll reset it is paired with.
   useEffect(() => {
     setMenuOpen(false);
+    setHidden(false);
   }, [location.pathname]);
+
+  // The mobile menu is a sibling anchored at top-[72px], not a child of the
+  // header — so if the bar slid away while the menu was open, the menu would be
+  // left floating with nothing above it. Hold the bar in place until the menu
+  // closes, which also happens on every route change.
+  const barHidden = hidden && !menuOpen;
 
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 liquid-glass !rounded-none !border-x-0 !border-t-0 border-b-white/25 transition-shadow duration-300 ${
+        // Catches a keyboard user tabbing into the bar while it is hidden:
+        // focus would otherwise land on a control sitting above the top of the
+        // viewport. React delegates focusin through onFocus, so this fires for
+        // any descendant link or input, not just the header itself.
+        onFocus={() => setHidden(false)}
+        className={`fixed top-0 left-0 right-0 z-50 liquid-glass !rounded-none !border-x-0 !border-t-0 border-b-white/25 nav-slide transition-[transform,box-shadow] duration-300 ${
+          barHidden ? "-translate-y-full" : "translate-y-0"
+        } ${
           scrolled ? "shadow-[0_2px_16px_rgba(31,38,135,0.14)]" : "!shadow-none"
         }`}
       >

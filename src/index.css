@@ -281,6 +281,14 @@
     .gradient-text-animate {
       animation: none !important;
     }
+
+    /* The navbar keeps hiding and reappearing here — that is behaviour, not
+       decoration, and dropping it would leave these users with a bar that never
+       gives its 68px back. Only the 300ms slide goes, so the bar cuts straight
+       to its new position instead of travelling there. */
+    .nav-slide {
+      transition: none !important;
+    }
   }
 
   /* ── Seek bar ──
