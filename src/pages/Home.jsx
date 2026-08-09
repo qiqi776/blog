@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ArrowRight, GitBranch, Mail, Terminal, Cpu, Database, Network, Layers,
+  ArrowRight, GitBranch, Terminal, Cpu, Database, Network, Layers,
   Star, GitFork, Clock, Activity, FileText, Boxes, Share2, ChevronRight,
 } from 'lucide-react';
 import AnimatedNumber from '../components/ui/AnimatedNumber';
 import { posts, categories } from '../data/posts';
-import { GITHUB, EMAIL, AVATAR, HANDLE, DISPLAY_NAME, projects } from '../data/profile';
+import { GITHUB, AVATAR, HANDLE, DISPLAY_NAME, projects } from '../data/profile';
 
 // ── Derived facts ────────────────────────────────────────────
 // Everything on this page comes from real post data, not placeholders.
@@ -25,12 +25,6 @@ const uptimeDays = Math.max(
 
 const TAGS = ['Kernel', 'Database', 'Distributed', 'Go'];
 
-const SOCIALS = [
-  { icon: GitBranch, href: GITHUB, label: 'GitHub' },
-  { icon: Mail, href: EMAIL, label: '邮箱' },
-  { icon: FileText, href: '/archive', label: '归档', internal: true },
-];
-
 // Status rows map real categories onto a system-status readout
 const STATUS_ICONS = { os: Cpu, mysql: Database, DistributedSystem: Share2, go: Boxes };
 const STATUS_STATE = {
@@ -45,88 +39,6 @@ const reduceMotion = () =>
   window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const postHref = (slug) => '/posts/' + slug.split('/').map(encodeURIComponent).join('/');
-
-// ── Falling petals ───────────────────────────────────────────
-// Canvas so the drift never touches the React render path.
-function Petals() {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    if (reduceMotion()) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    let raf, w, h, petals = [];
-
-    const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      w = canvas.clientWidth;
-      h = canvas.clientHeight;
-      canvas.width = w * dpr;
-      canvas.height = h * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-
-    const seed = () => {
-      const count = Math.round(Math.min(38, Math.max(14, w / 42)));
-      petals = Array.from({ length: count }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        r: Math.random() * 3.5 + 2,
-        vy: Math.random() * 0.5 + 0.22,
-        drift: Math.random() * 0.5 - 0.25,
-        // phase/spin give each petal its own sway so the field never pulses in unison
-        phase: Math.random() * Math.PI * 2,
-        spin: Math.random() * 0.02 + 0.005,
-        alpha: Math.random() * 0.35 + 0.2,
-      }));
-    };
-
-    const draw = () => {
-      ctx.clearRect(0, 0, w, h);
-      for (const p of petals) {
-        p.phase += p.spin;
-        p.y += p.vy;
-        p.x += p.drift + Math.sin(p.phase) * 0.4;
-
-        if (p.y > h + 10) { p.y = -10; p.x = Math.random() * w; }
-        if (p.x < -10) p.x = w + 10;
-        if (p.x > w + 10) p.x = -10;
-
-        // squashed ellipse, rotated — closer to a petal than a dot
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.phase);
-        ctx.fillStyle = `rgba(249,168,212,${p.alpha})`;
-        ctx.beginPath();
-        ctx.ellipse(0, 0, p.r, p.r * 0.55, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-      raf = requestAnimationFrame(draw);
-    };
-
-    resize();
-    seed();
-    draw();
-
-    const onResize = () => { resize(); seed(); };
-    window.addEventListener('resize', onResize);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', onResize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden="true"
-      className="fixed inset-0 w-full h-full pointer-events-none z-0"
-    />
-  );
-}
 
 // ── Ambient glow ─────────────────────────────────────────────
 function Glow() {
@@ -488,38 +400,6 @@ export default function Home() {
   return (
     <>
       <Glow />
-      <Petals />
-
-      {/* Fixed social rail — wide screens only, sits in the left gutter */}
-      <div className="hidden xl:flex fixed left-6 top-1/2 -translate-y-1/2 z-20 flex-col items-center gap-4">
-        {SOCIALS.map(({ icon: Icon, href, label, internal }) =>
-          internal ? (
-            <Link
-              key={label}
-              to={href}
-              aria-label={label}
-              title={label}
-              className="text-[var(--text-muted)] hover:text-[var(--color-primary)] hover:scale-110 transition-all duration-200"
-            >
-              <Icon size={16} />
-            </Link>
-          ) : (
-            <a
-              key={label}
-              href={href}
-              target={href.startsWith('mailto:') ? undefined : '_blank'}
-              rel="noopener noreferrer"
-              aria-label={label}
-              title={label}
-              className="text-[var(--text-muted)] hover:text-[var(--color-primary)] hover:scale-110 transition-all duration-200"
-            >
-              <Icon size={16} />
-            </a>
-          )
-        )}
-        <span className="w-px h-16 bg-gradient-to-b from-[var(--color-primary)]/50 to-transparent" />
-      </div>
-
       <div className="relative z-10 page-shell pt-28 pb-10 space-y-5">
 
         {/* ── Hero ─────────────────────────────────────────── */}

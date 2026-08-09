@@ -1,45 +1,52 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Search } from 'lucide-react';
-import { useBackground } from '../../context/BackgroundContext';
-import { AVATAR, DISPLAY_NAME } from '../../data/profile';
+import { useState, useEffect } from "react";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, Search } from "lucide-react";
+import { AVATAR, DISPLAY_NAME, GITHUB } from "../../data/profile";
 
 const navLinks = [
-  { to: '/', label: '首页' },
-  { to: '/posts', label: '文章' },
-  { to: '/archive', label: '归档' },
-  { to: '/about', label: '关于' },
+  { to: "/", label: "首页" },
+  { to: "/posts", label: "文章" },
+  { to: "/archive", label: "归档" },
+  { to: "/about", label: "关于" },
 ];
 
-const schemeLabels = { sakura: '樱夜', aurora: '极光', midnight: '深夜', spring: '春日' };
 
 export default function Navbar() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { schemes, currentScheme, changeScheme } = useBackground();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // close menu on route change
-  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 liquid-glass !rounded-none !border-x-0 !border-t-0 border-b-white/25 transition-shadow duration-300 ${
-          scrolled ? 'shadow-[0_2px_16px_rgba(31,38,135,0.14)]' : '!shadow-none'
+          scrolled ? "shadow-[0_2px_16px_rgba(31,38,135,0.14)]" : "!shadow-none"
         }`}
       >
         <div className="page-shell">
-          <div className="h-[72px] flex items-center justify-between relative">
+          <div className="h-[68px] flex items-center justify-between relative">
             {/* Logo — left */}
-            <Link to="/" className="flex items-center gap-2.5 group shrink-0 relative z-10">
+            <Link
+              to="/"
+              className="flex items-center gap-2.5 group shrink-0 relative z-10"
+            >
               {/* The GitHub avatar as the mark. Served from /avatar.jpg rather
                   than github.com: an <img> pointing at github.com would make
                   every page load wait on a request that is slow or blocked from
@@ -56,28 +63,37 @@ export default function Navbar() {
                 height="36"
                 className="w-9 h-9 rounded-full object-cover shadow-md ring-1 ring-white/40 group-hover:scale-105 transition-transform duration-200"
               />
-              <span className="font-bold text-xl tracking-wide gradient-text">{DISPLAY_NAME}</span>
+              <span className="font-bold text-xl tracking-wide gradient-text">
+                {DISPLAY_NAME}
+              </span>
             </Link>
 
             {/* Nav — absolutely centered, so side widths never shift it */}
             <nav className="hidden md:flex items-center gap-0.5 absolute left-1/2 -translate-x-1/2">
               {navLinks.map(({ to, label }) => {
-                const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+                const isActive =
+                  to === "/"
+                    ? location.pathname === "/"
+                    : location.pathname.startsWith(to);
                 return (
                   <Link
                     key={to}
                     to={to}
                     className={`relative px-5 py-2 rounded-full text-base md:text-lg font-medium transition-colors duration-200 ${
                       isActive
-                        ? 'text-pink-700'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-body)]'
+                        ? "text-pink-700"
+                        : "text-[var(--text-muted)] hover:text-[var(--text-body)]"
                     }`}
                   >
                     {isActive && (
                       <motion.span
                         layoutId="nav-pill"
                         className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-200/75 to-purple-200/60 shadow-sm"
-                        transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 32,
+                        }}
                       />
                     )}
                     <span className="relative z-10">{label}</span>
@@ -91,27 +107,32 @@ export default function Navbar() {
               <div className="hidden md:block">
                 <SearchBox />
               </div>
+              {/* GitHub. Inline SVG rather than a lucide icon: lucide-react v1
+                  dropped all brand marks, so there is no <Github /> to import.
+                  This is the official octocat path. */}
+              <a
+                href={GITHUB}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub"
+                title="GitHub"
+                className="w-9 h-9 flex items-center justify-center rounded-full text-[var(--text-body)] hover:text-[var(--color-primary)] hover:bg-white/15 transition-colors duration-200"
+              >
+                <svg
+                  viewBox="0 0 16 16"
+                  width="18"
+                  height="18"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.07-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A7.995 7.995 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
+                </svg>
+              </a>
 
-              <div className="hidden md:flex items-center gap-1">
-                {schemes.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => changeScheme(s.id)}
-                    title={s.name}
-                    aria-label={`切换主题：${s.name}`}
-                    className={`w-6 h-6 rounded-full border-2 transition-all duration-200 ${
-                      currentScheme.scheme.id === s.id
-                        ? 'border-white scale-110 shadow-md'
-                        : 'border-white/40 hover:scale-105'
-                    }`}
-                    style={{ background: s.primaryColor }}
-                  />
-                ))}
-              </div>
 
               {/* Mobile menu button */}
               <button
-                className="md:hidden glass-button !p-2 !rounded-full"
+                className="md:hidden glass-button !p-0 w-9 h-9 flex items-center justify-center !rounded-full"
                 onClick={() => setMenuOpen(!menuOpen)}
                 aria-label="Toggle menu"
               >
@@ -139,15 +160,18 @@ export default function Navbar() {
               </div>
 
               {navLinks.map(({ to, label }) => {
-                const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+                const isActive =
+                  to === "/"
+                    ? location.pathname === "/"
+                    : location.pathname.startsWith(to);
                 return (
                   <Link
                     key={to}
                     to={to}
                     className={`block px-4 py-2.5 rounded-xl text-base md:text-lg font-medium transition-all duration-200 ${
                       isActive
-                        ? 'bg-pink-200/60 text-pink-700'
-                        : 'text-[var(--text-muted)] hover:bg-white/20 hover:text-[var(--text-body)]'
+                        ? "bg-pink-200/60 text-pink-700"
+                        : "text-[var(--text-muted)] hover:bg-white/20 hover:text-[var(--text-body)]"
                     }`}
                   >
                     {label}
@@ -155,27 +179,6 @@ export default function Navbar() {
                 );
               })}
               {/* Theme buttons */}
-              <div className="flex items-center gap-3 px-4 pt-2 border-t border-white/20">
-                <span className="text-sm md:text-base text-[var(--text-muted)]">主题</span>
-                {schemes.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => changeScheme(s.id)}
-                    title={s.name}
-                    className={`flex items-center gap-1.5 text-sm md:text-base px-2 py-1 rounded-lg transition-all ${
-                      currentScheme.scheme.id === s.id
-                        ? 'bg-white/30 text-[var(--text-body)] font-medium'
-                        : 'text-[var(--text-muted)] hover:bg-white/20'
-                    }`}
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full"
-                      style={{ background: s.primaryColor }}
-                    />
-                    {schemeLabels[s.id] || s.name}
-                  </button>
-                ))}
-              </div>
             </div>
           </motion.div>
         )}
@@ -192,16 +195,20 @@ function SearchBox({ mobile = false, onSubmitted }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const urlQuery = searchParams.get('q') ?? '';
-  const onPostsPage = location.pathname === '/posts';
+  const urlQuery = searchParams.get("q") ?? "";
+  const onPostsPage = location.pathname === "/posts";
   const [value, setValue] = useState(urlQuery);
 
   // Re-sync when the URL changes from outside (back button, category click)
-  useEffect(() => { setValue(urlQuery); }, [urlQuery]);
+  useEffect(() => {
+    setValue(urlQuery);
+  }, [urlQuery]);
 
   const push = (q, replace) => {
     const trimmed = q.trim();
-    navigate(trimmed ? `/posts?q=${encodeURIComponent(trimmed)}` : '/posts', { replace });
+    navigate(trimmed ? `/posts?q=${encodeURIComponent(trimmed)}` : "/posts", {
+      replace,
+    });
   };
 
   const handleChange = (e) => {
@@ -217,12 +224,15 @@ function SearchBox({ mobile = false, onSubmitted }) {
   };
 
   const clear = () => {
-    setValue('');
-    if (onPostsPage) push('', true);
+    setValue("");
+    if (onPostsPage) push("", true);
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`relative ${mobile ? 'w-full' : ''}`}>
+    <form
+      onSubmit={handleSubmit}
+      className={`relative ${mobile ? "w-full" : ""}`}
+    >
       <Search
         size={14}
         className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
@@ -233,8 +243,8 @@ function SearchBox({ mobile = false, onSubmitted }) {
         onChange={handleChange}
         placeholder="搜索文章…"
         aria-label="搜索文章"
-        className={`${mobile ? 'w-full py-2.5' : 'w-36 focus:w-48 py-2'} text-base md:text-lg pl-9 ${
-          value ? 'pr-8' : 'pr-3'
+        className={`${mobile ? "w-full h-11" : "w-36 focus:w-48 h-9"} text-base md:text-lg leading-none pl-9 ${
+          value ? "pr-8" : "pr-3"
         } rounded-full bg-white/20 border border-white/25 focus:outline-none focus:ring-2 focus:ring-pink-300/40 text-[var(--text-body)] placeholder:text-[var(--text-muted)] transition-all duration-300`}
       />
       {value && (

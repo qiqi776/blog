@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import SchemeBackdrop from '../SchemeBackdrop';
+import Petals from '../Petals';
 
 // Resets scroll for each incoming page. Lives inside the keyed subtree so it
 // runs when the new page mounts — not when the outgoing one starts to exit,
@@ -32,6 +33,13 @@ export default function Layout() {
           transitions, and it must not remount on navigation (that would
           re-decode the JPEG and flash). */}
       <SchemeBackdrop />
+
+      {/* Also outside AnimatePresence, and for a second reason beyond the
+          backdrop's: the canvas seeds its petal field once on mount. Inside the
+          keyed subtree it would remount per navigation and the whole field
+          would restart from random positions on every click. Out here the drift
+          simply continues across route changes. */}
+      <Petals />
 
       <Navbar />
 
