@@ -1,114 +1,94 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
-  ArrowRight, GitBranch, Terminal, Cpu, Database, Network, Layers,
-  Star, GitFork, Clock, Activity, FileText, Boxes, Share2, ChevronRight,
-} from 'lucide-react';
-import AnimatedNumber from '../components/ui/AnimatedNumber';
-import { posts, categories } from '../data/posts';
-import { GITHUB, AVATAR, HANDLE, DISPLAY_NAME, projects } from '../data/profile';
-
-// ── Derived facts ────────────────────────────────────────────
-// Everything on this page comes from real post data, not placeholders.
-const realCategories = categories.filter((c) => c.id !== 'all');
-const categoryCount = realCategories.length;
-const totalWan = Math.round(posts.reduce((s, p) => s + p.content.length, 0) / 10000);
-const firstDate = posts.length
-  ? posts.reduce((min, p) => (p.date < min ? p.date : min), posts[0].date)
-  : '2026-01-01';
-
-const uptimeDays = Math.max(
-  1,
-  Math.floor((Date.now() - new Date(firstDate).getTime()) / 86400000)
-);
-
-const TAGS = ['Kernel', 'Database', 'Distributed', 'Go'];
-
-// Status rows map real categories onto a system-status readout
-const STATUS_ICONS = { os: Cpu, mysql: Database, DistributedSystem: Share2, go: Boxes };
-const STATUS_STATE = {
-  os: 'Running',
-  mysql: 'Syncing',
-  DistributedSystem: 'Healthy',
-  go: 'Active',
-};
-
-const reduceMotion = () =>
-  typeof window !== 'undefined' &&
-  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-const postHref = (slug) => '/posts/' + slug.split('/').map(encodeURIComponent).join('/');
+  ArrowRight,
+  GitBranch,
+  FileText,
+  Disc3,
+  Play,
+  Pause,
+  SkipBack,
+  SkipForward,
+  Volume2,
+  VolumeX,
+  ExternalLink,
+  PenLine,
+  CalendarDays,
+  Music2,
+  Hash,
+} from "lucide-react";
+import { posts, categories } from "../data/posts";
+import { HANDLE } from "../data/profile";
+import { tracks } from "../data/personal";
 
 // ── Ambient glow ─────────────────────────────────────────────
 function Glow() {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+    <div
+      className="fixed inset-0 overflow-hidden pointer-events-none z-0"
+      aria-hidden="true"
+    >
       <div
         className="absolute rounded-full animate-gradient-drift"
         style={{
-          top: '-14%', right: '-6%', width: '540px', height: '540px',
-          background: 'radial-gradient(circle, rgba(244,114,182,0.26) 0%, transparent 70%)',
-          filter: 'blur(60px)',
+          top: "-14%",
+          right: "-6%",
+          width: "540px",
+          height: "540px",
+          background:
+            "radial-gradient(circle, rgba(244,114,182,0.26) 0%, transparent 70%)",
+          filter: "blur(60px)",
         }}
       />
       <div
         className="absolute rounded-full animate-gradient-drift"
         style={{
-          top: '45%', left: '-8%', width: '420px', height: '420px',
-          background: 'radial-gradient(circle, rgba(192,132,252,0.2) 0%, transparent 70%)',
-          filter: 'blur(65px)',
-          animationDelay: '-4s',
+          top: "45%",
+          left: "-8%",
+          width: "420px",
+          height: "420px",
+          background:
+            "radial-gradient(circle, rgba(192,132,252,0.2) 0%, transparent 70%)",
+          filter: "blur(65px)",
+          animationDelay: "-4s",
         }}
       />
     </div>
   );
 }
 
-// ── Count-up ─────────────────────────────────────────────────
-function useCountUp(target, duration = 1400) {
-  const [n, setN] = useState(() => (reduceMotion() ? target : 0));
-
-  useEffect(() => {
-    if (reduceMotion()) return;
-    let raf;
-    const start = performance.now();
-    const tick = (now) => {
-      const t = Math.min(1, (now - start) / duration);
-      setN(Math.round(target * (1 - Math.pow(1 - t, 3)))); // easeOutCubic
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
-
-  return n;
-}
-
-// ── Panel shell ──────────────────────────────────────────────
-// One wrapper for every dashboard card, so headers stay consistent.
-function Panel({ icon: Icon, title, action, actionTo, className = '', children, delay = 0 }) {
+// ── Card shell ───────────────────────────────────────────────
+// Every widget below sits in one of these, so padding and header
+// rhythm stay identical without repeating the class string.
+function Card({
+  icon: Icon,
+  title,
+  aside,
+  className = "",
+  delay = 0,
+  children,
+}) {
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-60px' }}
+      viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
       className={`liquid-glass rounded-2xl p-5 ${className}`}
     >
       {title && (
-        <header className="flex items-center justify-between mb-4">
-          <h2 className="flex items-center gap-2 text-base md:text-lg font-bold text-[var(--text-heading)]">
-            {Icon && <Icon size={15} className="text-[var(--color-primary)]" />}
+        <header className="flex items-center gap-2 mb-4">
+          {Icon && (
+            <Icon size={15} className="text-[var(--color-primary)] shrink-0" />
+          )}
+          <h2 className="text-base md:text-lg font-bold text-[var(--text-heading)]">
             {title}
           </h2>
-          {action && actionTo && (
-            <Link
-              to={actionTo}
-              className="flex items-center gap-1 text-sm px-2.5 py-1 rounded-full bg-white/10 text-[var(--text-muted)] hover:text-[var(--color-primary)] hover:bg-white/20 transition-all duration-200"
-            >
-              {action} <ArrowRight size={11} />
-            </Link>
+          {aside && (
+            <span className="ml-auto text-sm text-[var(--text-muted)]">
+              {aside}
+            </span>
           )}
         </header>
       )}
@@ -117,377 +97,397 @@ function Panel({ icon: Icon, title, action, actionTo, className = '', children, 
   );
 }
 
-// ── System status ────────────────────────────────────────────
-// Rows are real categories; the "state" word is decorative, the count is not.
-function SystemStatus() {
-  const rows = Object.keys(STATUS_ICONS)
-    .map((id) => realCategories.find((c) => c.id === id))
-    .filter(Boolean);
+// ── Now playing ──────────────────────────────────────────────
+// A real <audio> player, not a mock. Whether it can actually play depends
+// on the `src` field in src/data/personal.js:
+//   src filled  → full playback: seek, prev/next, mute, auto-advance
+//   src empty   → play button disabled, links out to a search instead
+// The degraded path exists because this repo ships no audio files, and a
+// player that looks live but does nothing when clicked is worse than one
+// that says plainly it has no file.
+const searchUrl = (t) =>
+  "https://music.163.com/#/search/m/?s=" +
+  encodeURIComponent(`${t.title} ${t.artist}`);
 
-  return (
-    <div className="liquid-glass rounded-2xl p-5">
-      <header className="flex items-center gap-2 pb-3 mb-3 border-b border-white/15">
-        <span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-pulse" />
-        <span className="text-sm font-bold tracking-[0.16em] text-[var(--text-heading)] uppercase">
-          System Status
-        </span>
-      </header>
+const fmt = (s) => {
+  if (!Number.isFinite(s) || s < 0) return "0:00";
+  const m = Math.floor(s / 60);
+  return `${m}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+};
 
-      <div className="space-y-3">
-        {rows.map(({ id, label, count }) => {
-          const Icon = STATUS_ICONS[id];
-          return (
-            <div key={id} className="flex items-center justify-between text-base md:text-lg">
-              <span className="flex items-center gap-2.5 text-[var(--text-body)]">
-                <Icon size={14} className="text-[var(--color-primary)]" />
-                {label}
-              </span>
-              <span className="flex items-center gap-2 text-sm md:text-base text-[var(--text-muted)]">
-                {STATUS_STATE[id]}
-                <span className="font-mono tabular-nums text-[var(--color-primary)]">
-                  {count}
-                </span>
-              </span>
-            </div>
-          );
-        })}
-      </div>
+function NowPlaying() {
+  const [idx, setIdx] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [at, setAt] = useState(0);
+  const [len, setLen] = useState(0);
+  const ref = useRef(null);
 
-      <div className="mt-4 pt-3 border-t border-white/15 flex items-center justify-center gap-2 text-sm text-[var(--text-muted)]">
-        <Activity size={11} className="text-[var(--color-primary)]" />
-        System Uptime:
-        <span className="font-mono tabular-nums text-[var(--text-body)]">{uptimeDays} 天</span>
-      </div>
-    </div>
-  );
-}
+  const current = tracks[idx] ?? { title: "—", artist: "—", src: "" };
+  const playable = Boolean(current.src);
 
-// ── Terminal ─────────────────────────────────────────────────
-// Types one line at a time, then holds. Real post titles as the payload.
-function TerminalCard() {
-  const lines = useMemo(() => {
-    const recent = posts.slice(0, 3).map((p) => `reading ${p.title}`);
-    return ['status', ...recent, '# 每天前进一点'];
-  }, []);
-
-  const [shown, setShown] = useState(() => (reduceMotion() ? lines.length : 0));
-
+  // Track changed while playing — carry playback over to the new source.
+  // Safe against autoplay policy: `playing` only becomes true via a click.
   useEffect(() => {
-    if (reduceMotion()) return;
-    if (shown >= lines.length) return;
-    const id = setTimeout(() => setShown((n) => n + 1), 620);
-    return () => clearTimeout(id);
-  }, [shown, lines.length]);
+    const el = ref.current;
+    if (!el || !playable) return;
+    if (playing) el.play().catch(() => setPlaying(false));
+    else el.pause();
+  }, [idx, playing, playable]);
+
+  const step = (n) => {
+    setIdx((i) => (i + n + tracks.length) % tracks.length);
+    setAt(0);
+    setLen(0);
+  };
+
+  const seek = (e) => {
+    const v = Number(e.target.value);
+    setAt(v);
+    if (ref.current) ref.current.currentTime = v;
+  };
 
   return (
-    <div className="rounded-xl bg-black/30 border border-white/10 p-4 font-mono text-sm leading-relaxed overflow-hidden">
-      <div className="flex items-center gap-1.5 pb-2.5 mb-2.5 border-b border-white/10">
-        <span className="w-2 h-2 rounded-full bg-red-400/70" />
-        <span className="w-2 h-2 rounded-full bg-yellow-400/70" />
-        <span className="w-2 h-2 rounded-full bg-green-400/70" />
-        <span className="ml-1.5 text-xs text-[var(--text-muted)]">bash</span>
-      </div>
-
-      <div className="text-[var(--color-primary)]">
-        root@{HANDLE}:~$ <span className="text-[var(--text-body)]">status</span>
-      </div>
-
-      <div className="mt-1.5 space-y-1">
-        {lines.slice(1, shown + 1).map((l, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={l.startsWith('#') ? 'text-[var(--text-muted)]' : 'text-[var(--text-body)]'}
+    <Card className="flex flex-col" delay={0.1}>
+      <div className="flex items-start gap-5">
+        {/* Vinyl — spins only while audio is actually advancing */}
+        <div className="relative shrink-0">
+          <div
+            className={`w-[104px] h-[104px] rounded-full grid place-items-center ${
+              playing && playable ? "animate-vinyl-spin" : ""
+            }`}
+            style={{
+              background:
+                "repeating-radial-gradient(circle at 50% 50%, #2a1220 0 3px, #3d1a2e 3px 5px)",
+              boxShadow: "0 6px 22px rgba(0,0,0,0.45)",
+            }}
+            aria-hidden="true"
           >
-            {l.startsWith('#') ? l : <><span className="text-[var(--color-primary)]">&gt;</span> {l}</>}
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="mt-2 text-[var(--color-primary)]">
-        root@{HANDLE}:~$
-        <span className="inline-block w-1.5 h-3 ml-1 align-middle bg-[var(--color-primary)] animate-pulse" />
-      </div>
-    </div>
-  );
-}
-
-// ── Knowledge map ────────────────────────────────────────────
-// Real categories grouped into branches, sized by post count.
-const BRANCHES = [
-  { title: '系统底层', ids: ['os', 'network'], icon: Cpu },
-  { title: '数据存储', ids: ['mysql', 'cmu15445', 'ddia'], icon: Database },
-  { title: '分布式', ids: ['DistributedSystem', 'SystemDesign', 'middleware'], icon: Share2 },
-  { title: '工程实践', ids: ['go', 'projects', 'webfront'], icon: Boxes },
-];
-
-function KnowledgeMap() {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {BRANCHES.map(({ title, ids, icon: Icon }) => {
-        const cats = ids.map((id) => realCategories.find((c) => c.id === id)).filter(Boolean);
-        const total = cats.reduce((s, c) => s + c.count, 0);
-
-        return (
-          <div key={title} className="rounded-xl bg-white/[0.07] border border-white/10 p-3.5">
-            <div className="flex items-center gap-2 mb-2.5">
-              <Icon size={13} className="text-[var(--color-primary)]" />
-              <span className="text-sm md:text-base font-bold text-[var(--text-heading)]">{title}</span>
-              <span className="ml-auto font-mono text-xs tabular-nums text-[var(--text-muted)]">
-                {total}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-1.5">
-              {cats.map((c) => (
-                <Link
-                  key={c.id}
-                  to={`/posts?cat=${encodeURIComponent(c.id)}`}
-                  className="px-2 py-0.5 rounded-full text-xs bg-white/10 text-[var(--text-muted)] hover:bg-[var(--color-primary)]/25 hover:text-[var(--text-body)] transition-all duration-200"
-                >
-                  {c.label}
-                  <span className="ml-1 font-mono tabular-nums opacity-60">{c.count}</span>
-                </Link>
-              ))}
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 grid place-items-center">
+              <Disc3 size={16} className="text-white/90" />
             </div>
           </div>
-        );
-      })}
-    </div>
-  );
-}
+        </div>
 
-// ── Featured projects ────────────────────────────────────────
-function ProjectRow({ p }) {
-  return (
-    <a
-      href={p.href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block group rounded-xl bg-white/[0.07] border border-white/10 p-3.5 hover:border-[var(--color-primary)]/40 transition-all duration-200"
-    >
-      <div className="flex items-center gap-2 mb-1.5">
-        <Layers size={14} className="text-[var(--color-primary)]" />
-        <span className="text-base md:text-lg font-bold text-[var(--text-heading)]">{p.name}</span>
-        <span className="ml-auto flex items-center gap-2 text-xs text-[var(--text-muted)]">
-          <span className="flex items-center gap-0.5"><Star size={10} /> {p.stars}</span>
-          <span className="flex items-center gap-0.5"><GitFork size={10} /> {p.forks}</span>
-        </span>
-      </div>
-
-      <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-2.5 line-clamp-2">
-        {p.desc}
-      </p>
-
-      <div className="flex items-center gap-1.5">
-        <span
-          className="w-2 h-2 rounded-full shrink-0"
-          style={{ background: p.langColor }}
-        />
-        <span className="text-xs text-[var(--text-muted)]">{p.lang}</span>
-        <ChevronRight
-          size={12}
-          className="ml-auto text-[var(--color-primary)] opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200"
-        />
-      </div>
-    </a>
-  );
-}
-
-// ── Recent logs ──────────────────────────────────────────────
-// Real posts. The reference had commit diff stats; read time is what we have.
-function RecentLogs() {
-  return (
-    <div className="space-y-0.5">
-      {posts.slice(0, 6).map((p) => (
-        <Link
-          key={p.slug}
-          to={postHref(p.slug)}
-          className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/10 transition-colors duration-200 group"
-        >
-          <span className="font-mono text-xs tabular-nums text-[var(--text-muted)] shrink-0">
-            {p.date}
-          </span>
-          <span className="w-1 h-1 rounded-full bg-[var(--color-primary)]/60 shrink-0" />
-          <span className="flex-1 min-w-0 truncate text-sm md:text-base text-[var(--text-body)] group-hover:text-[var(--text-heading)] transition-colors">
-            {p.title}
-          </span>
-          <span className={`shrink-0 text-[11px] px-1.5 py-0.5 rounded-full ${p.categoryColor}`}>
-            {p.categoryLabel}
-          </span>
-          <span className="shrink-0 flex items-center gap-0.5 font-mono text-xs text-[var(--text-muted)] w-14 justify-end">
-            <Clock size={9} /> {p.readTime}
-          </span>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-// ── Profile card ─────────────────────────────────────────────
-function ProfileCard() {
-  const [failed, setFailed] = useState(false);
-  const nPosts = useCountUp(posts.length);
-  const nCats = useCountUp(categoryCount);
-  const nWan = useCountUp(totalWan);
-
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3.5 mb-4">
-        {failed ? (
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center text-xl font-black text-white ring-2 ring-[var(--color-primary)]/40 shrink-0">
-            追
-          </div>
-        ) : (
-          <img
-            src={AVATAR}
-            alt=""
-            width={56}
-            height={56}
-            onError={() => setFailed(true)}
-            className="w-14 h-14 rounded-full object-cover ring-2 ring-[var(--color-primary)]/40 shrink-0"
-          />
-        )}
-
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-lg md:text-xl font-black text-[var(--text-heading)]">{DISPLAY_NAME}</span>
-            <span className="px-1.5 py-0.5 rounded text-[11px] font-bold bg-[var(--color-primary)]/25 text-[var(--color-primary)]">
-              BACKEND
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 mb-1.5 text-sm text-[var(--text-muted)]">
+            <Music2 size={12} className="text-[var(--color-primary)]" />
+            <span className="tracking-[0.14em] uppercase">
+              {playing && playable ? "Now Playing" : "Playlist"}
             </span>
           </div>
-          <div className="font-mono text-sm text-[var(--text-muted)]">@{HANDLE}</div>
+
+          <div className="text-lg md:text-xl font-bold text-[var(--text-heading)] truncate">
+            {current.title}
+          </div>
+          <div className="text-sm md:text-base text-[var(--text-muted)] truncate mb-3">
+            {current.artist}
+          </div>
+
+          {/* Seek — native range so keyboard and screen readers work for free */}
+          <input
+            type="range"
+            min={0}
+            max={len || 1}
+            value={at}
+            step={0.5}
+            onChange={seek}
+            disabled={!playable || !len}
+            aria-label="播放进度"
+            className="seek-range w-full"
+          />
+          <div className="flex justify-between font-mono text-xs tabular-nums text-[var(--text-muted)] mt-1">
+            <span>{fmt(at)}</span>
+            <span>{len ? fmt(len) : "--:--"}</span>
+          </div>
+
+          <div className="flex items-center gap-1 mt-2.5">
+            <button
+              onClick={() => step(-1)}
+              aria-label="上一首"
+              className="p-2 rounded-full text-[var(--text-body)] hover:bg-white/15 transition-colors duration-200"
+            >
+              <SkipBack size={15} />
+            </button>
+
+            <button
+              onClick={() => setPlaying((p) => !p)}
+              disabled={!playable}
+              aria-label={playing ? "暂停" : "播放"}
+              title={playable ? undefined : "这首没有本地音频文件"}
+              className="p-2.5 rounded-full bg-[var(--color-primary)]/85 text-white hover:bg-[var(--color-primary)] disabled:opacity-35 disabled:cursor-not-allowed transition-colors duration-200"
+            >
+              {playing ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+
+            <button
+              onClick={() => step(1)}
+              aria-label="下一首"
+              className="p-2 rounded-full text-[var(--text-body)] hover:bg-white/15 transition-colors duration-200"
+            >
+              <SkipForward size={15} />
+            </button>
+
+            {/* No local file — the play button is disabled, so this is the
+                only thing here that actually goes anywhere. */}
+            {!playable && (
+              <a
+                href={searchUrl(current)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-auto flex items-center gap-1 text-xs text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors duration-200"
+              >
+                去听 <ExternalLink size={10} />
+              </a>
+            )}
+
+            <button
+              onClick={() => setMuted((m) => !m)}
+              aria-label={muted ? "取消静音" : "静音"}
+              className={`p-2 rounded-full text-[var(--text-muted)] hover:bg-white/15 hover:text-[var(--text-body)] transition-colors duration-200 ${
+                playable ? "ml-auto" : "ml-1.5"
+              }`}
+            >
+              {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            </button>
+          </div>
         </div>
       </div>
 
-      <p className="text-sm text-[var(--text-muted)] leading-relaxed rounded-xl bg-white/[0.07] border border-white/10 p-3 mb-4">
-        关注 Go 语言底层、分布式系统与数据库内核。喜欢从零把东西写一遍，
-        再把每个细节想清楚。
-      </p>
+      {playable && (
+        <audio
+          ref={ref}
+          src={current.src}
+          muted={muted}
+          preload="metadata"
+          onTimeUpdate={(e) => setAt(e.currentTarget.currentTime)}
+          onLoadedMetadata={(e) => setLen(e.currentTarget.duration)}
+          onEnded={() => step(1)}
+          onError={() => setPlaying(false)}
+        />
+      )}
+    </Card>
+  );
+}
 
-      <div className="grid grid-cols-3 gap-2 mt-auto text-center">
-        {[
-          { n: nPosts, suffix: '', label: 'Articles' },
-          { n: nCats, suffix: '', label: 'Topics' },
-          { n: nWan, suffix: '万', label: 'Words' },
-        ].map(({ n, suffix, label }) => (
-          <div key={label}>
-            <div className="text-2xl font-black text-[var(--color-primary)] tabular-nums leading-none">
-              {n}
-              {suffix && <span className="text-sm md:text-base ml-0.5">{suffix}</span>}
-            </div>
-            <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--text-muted)] mt-1.5">
-              {label}
-            </div>
+// ── Tag cloud ────────────────────────────────────────────────
+// Built from categories, not from post `tags`. Not one of the 88 markdown
+// files carries a `tags:` key — the frontmatter is only title/date/order/draft
+// — so a cloud fed by `p.tags` would render an empty box on every build.
+// Categories are real: each post's top-level directory under /posts/ becomes
+// one, CATEGORY_MAP gives it a Chinese label, and the count comes with it.
+const CLOUD = categories.filter((c) => c.id !== "all");
+const CLOUD_MAX = Math.max(1, ...CLOUD.map((c) => c.count));
+const CLOUD_MIN = Math.min(...CLOUD.map((c) => c.count));
+
+// Five discrete sizes instead of a continuous px ramp: arbitrary sizes on a
+// wrapping flex row never settle onto a shared baseline, so the rows read as
+// ragged. Size carries the coarse signal and opacity the fine one, so two
+// tags landing on the same step still separate.
+const CLOUD_STEPS = ["text-sm", "text-base", "text-lg", "text-xl", "text-2xl"];
+
+// The opacity floor is 0.7 for contrast, not taste. --text-heading (#fce7f3)
+// at 0.7 over this background is ~7.8:1, and the count inside it — which
+// multiplies by another 0.85 — still clears 4.5:1. Dropping the floor to 0.58
+// looked better and put that count at 3.5:1, which fails AA at text-xs.
+const cloudOpacity = (step) => 0.7 + step * 0.075;
+
+const cloudStep = (count) => {
+  if (CLOUD_MAX === CLOUD_MIN) return 2;
+  const t = (count - CLOUD_MIN) / (CLOUD_MAX - CLOUD_MIN);
+  return Math.round(t * (CLOUD_STEPS.length - 1));
+};
+
+function TagCloud() {
+  return (
+    <Card icon={Hash} title="标签云" aside={`${CLOUD.length} 个`} delay={0.06}>
+      <div className="flex flex-wrap items-baseline gap-x-3.5 gap-y-3">
+        {CLOUD.map((c, i) => {
+          const step = cloudStep(c.count);
+          return (
+            <motion.span
+              key={c.id}
+              initial={{ opacity: 0, scale: 0.92 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: 0.035 * i }}
+            >
+              <Link
+                to={`/posts?cat=${encodeURIComponent(c.id)}`}
+                className={`${CLOUD_STEPS[step]} font-bold leading-none text-[var(--text-heading)] hover:!opacity-100 hover:text-[var(--color-primary)] transition-all duration-200`}
+                style={{ opacity: cloudOpacity(step) }}
+              >
+                {c.label}
+                <span className="ml-1 align-super font-mono text-xs tabular-nums opacity-85">
+                  {c.count}
+                </span>
+              </Link>
+            </motion.span>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+// ── Writing pulse ────────────────────────────────────────────
+// Twelve real months from real post dates. This is not the Archive list
+// re-run: Archive answers "what did I write", this answers "when was I
+// actually writing" — the gaps are the point.
+function buildPulse() {
+  const now = new Date();
+  const months = [];
+
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.getMonth() + 1,
+      count: 0,
+    });
+  }
+
+  const byKey = new Map(months.map((m) => [m.key, m]));
+  posts.forEach((p) => {
+    const m = byKey.get(String(p.date).slice(0, 7));
+    if (m) m.count++;
+  });
+
+  return months;
+}
+
+// Bar heights are px, not %. The count now sits directly above each bar
+// inside the same column, so a percentage height would resolve against a
+// box that includes that text and the tallest bar would overflow. Fixed
+// px keeps the peak bar exactly at the top of the plot area.
+const BAR_MAX = 76;
+const BAR_EMPTY = 3;
+
+function WritingPulse() {
+  const months = useMemo(buildPulse, []);
+  const peak = Math.max(1, ...months.map((m) => m.count));
+  const inWindow = months.reduce((s, m) => s + m.count, 0);
+
+  return (
+    <Card
+      icon={PenLine}
+      title="写作节奏"
+      aside={`近 12 个月 ${inWindow} 篇 · 共 ${posts.length} 篇`}
+      delay={0.12}
+    >
+      {/* Two 12-column grids rather than one flex row: the bars and the month
+          labels have to line up column-for-column, and a shared grid template
+          guarantees that without either row knowing the other's widths. */}
+      <div className="grid grid-cols-12 gap-1 sm:gap-1.5 items-end">
+        {months.map((m, i) => (
+          <div key={m.key} className="flex flex-col items-center min-w-0">
+            {/* A zero here is information, not filler — it says "nothing that
+                month". So it stays at full --text-muted rather than being
+                dimmed further; stacking opacity on 10px text put it near
+                1.5:1 against this card, which is not readable. */}
+            <span
+              className={`font-mono text-[10px] sm:text-xs tabular-nums leading-none mb-1 ${
+                m.count
+                  ? "font-bold text-[var(--color-primary)]"
+                  : "text-[var(--text-muted)]"
+              }`}
+            >
+              {m.count}
+            </span>
+
+            <motion.div
+              className={`w-full rounded-t-[3px] ${
+                m.count
+                  ? "bg-gradient-to-t from-pink-500/50 to-pink-300/85"
+                  : "bg-white/[0.07]"
+              }`}
+              initial={{ height: BAR_EMPTY }}
+              whileInView={{
+                height: m.count
+                  ? Math.max(5, (m.count / peak) * BAR_MAX)
+                  : BAR_EMPTY,
+              }}
+              viewport={{ once: true }}
+              transition={{
+                duration: 0.55,
+                delay: i * 0.035,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              title={`${m.key} · ${m.count} 篇`}
+            />
           </div>
         ))}
       </div>
-    </div>
+
+      <div className="grid grid-cols-12 gap-1 sm:gap-1.5 border-t border-white/15 pt-1.5">
+        {months.map((m) => (
+          <span
+            key={m.key}
+            className="text-center font-mono text-[10px] sm:text-xs tabular-nums text-[var(--text-muted)]"
+          >
+            {m.label}
+          </span>
+        ))}
+      </div>
+    </Card>
   );
 }
 
 // ── Page ─────────────────────────────────────────────────────
+// Left column stacks the hero and the tag cloud; the player sits beside them,
+// bottom-aligned to the tag cloud rather than to the top of the hero. The
+// pulse spans the full width because twelve columns need the room.
+// The three entry buttons are the only navigation the page offers, so they
+// stay — without them the homepage is a dead end.
 export default function Home() {
-  const [tag, setTag] = useState(0);
-
-  useEffect(() => {
-    if (reduceMotion()) return;
-    const id = setInterval(() => setTag((i) => (i + 1) % TAGS.length), 2600);
-    return () => clearInterval(id);
-  }, []);
-
   return (
     <>
       <Glow />
       <div className="relative z-10 page-shell pt-28 pb-10 space-y-5">
-
-        {/* ── Hero ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-6 items-center mb-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <h1 className="text-4xl sm:text-5xl font-black leading-tight tracking-tight mb-3">
-              <span className="text-[var(--text-heading)]">Hi, I'm </span>
-              <span className="gradient-text gradient-text-animate">{HANDLE}</span>
-              <span className="text-[var(--color-primary)]">.</span>
-            </h1>
-
-            <p className="text-lg md:text-xl text-[var(--text-body)] mb-1">后端开发 · 系统方向学习者</p>
-            <p className="text-base md:text-lg text-[var(--text-muted)] mb-5">
-              把系统从零写一遍，再把每个细节想清楚。
-            </p>
-
-            {/* Tech tags — the active one cycles */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {TAGS.map((t, i) => (
-                <span
-                  key={t}
-                  className={`px-3 py-1.5 rounded-lg text-sm md:text-base font-medium border transition-all duration-500 ${
-                    i === tag
-                      ? 'bg-[var(--color-primary)]/25 border-[var(--color-primary)]/50 text-[var(--text-heading)]'
-                      : 'bg-white/[0.07] border-white/10 text-[var(--text-muted)]'
-                  }`}
-                >
-                  {t}
+        {/* ── Hero + tag cloud | Now playing ────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-6 items-start mb-4">
+          <div className="space-y-5">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <h1 className="text-4xl sm:text-5xl font-black leading-tight tracking-tight mb-3">
+                <span className="text-[var(--text-heading)]">Hi, I'm </span>
+                <span className="gradient-text gradient-text-animate">
+                  {HANDLE}
                 </span>
-              ))}
-            </div>
+                <span className="text-[var(--color-primary)]">.</span>
+              </h1>
 
-            {/* Quote */}
-            <div className="rounded-xl bg-white/[0.07] border-l-2 border-[var(--color-primary)]/60 px-4 py-3">
-              <p className="text-sm md:text-base text-[var(--text-body)] leading-relaxed">
-                「技术不是魔法，是一层层堆起来的常识。」
+              <p className="text-lg md:text-xl text-[var(--text-body)] mb-1">
+                全栈开发 · 分布式存储
               </p>
-              <p className="text-xs text-[var(--text-muted)] text-right mt-1.5">— {HANDLE}</p>
-            </div>
-          </motion.div>
+              <p className="text-base md:text-lg text-[var(--text-muted)]">
+                欢迎来到我的个人博客
+              </p>
+            </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <SystemStatus />
-          </motion.div>
+            <TagCloud />
+          </div>
+
+          {/* `self-end` on the player alone, not `items-end` on the grid: the
+              left column is the taller one today, but if the player ever grew
+              past it, `items-end` would drop the hero down the page to match.
+              This way only the player moves, and the hero stays pinned. */}
+          <div className="lg:self-end">
+            <NowPlaying />
+          </div>
         </div>
 
-        {/* ── Profile + terminal | Knowledge map ───────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <Panel className="!p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <ProfileCard />
-              <TerminalCard />
-            </div>
-          </Panel>
-
-          <Panel icon={Network} title="Knowledge Map" action="Explore All" actionTo="/posts" delay={0.06}>
-            <KnowledgeMap />
-          </Panel>
-        </div>
-
-        {/* ── Projects | Recent logs ───────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <Panel icon={Boxes} title="Featured Projects" action="View All" actionTo="/about">
-            <div className="space-y-2.5">
-              {projects.slice(0, 3).map((p) => (
-                <ProjectRow key={p.name} p={p} />
-              ))}
-            </div>
-          </Panel>
-
-          <Panel icon={Terminal} title="Recent Logs" action="View All" actionTo="/archive" delay={0.06}>
-            <RecentLogs />
-          </Panel>
-        </div>
+        {/* ── Writing pulse ────────────────────────────────── */}
+        <WritingPulse />
 
         {/* ── Entry points ─────────────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-60px' }}
+          viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-wrap items-center justify-center gap-3 pt-2"
         >
@@ -495,7 +495,21 @@ export default function Home() {
             <button className="btn-primary group flex items-center gap-2 text-base md:text-lg font-semibold !px-6 !py-3 !rounded-full">
               <FileText size={15} />
               开始阅读
-              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform duration-200" />
+              <ArrowRight
+                size={14}
+                className="group-hover:translate-x-1 transition-transform duration-200"
+              />
+            </button>
+          </Link>
+
+          <Link to="/archive">
+            <button className="group flex items-center gap-2 px-6 py-3 rounded-full text-base md:text-lg font-semibold text-[var(--text-body)] border border-white/25 hover:border-[var(--color-primary)]/50 hover:bg-white/10 transition-all duration-200">
+              <CalendarDays size={15} />
+              归档
+              <ArrowRight
+                size={14}
+                className="opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200"
+              />
             </button>
           </Link>
 
@@ -503,11 +517,13 @@ export default function Home() {
             <button className="group flex items-center gap-2 px-6 py-3 rounded-full text-base md:text-lg font-semibold text-[var(--text-body)] border border-white/25 hover:border-[var(--color-primary)]/50 hover:bg-white/10 transition-all duration-200">
               <GitBranch size={15} />
               关于我
-              <ArrowRight size={14} className="opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200" />
+              <ArrowRight
+                size={14}
+                className="opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all duration-200"
+              />
             </button>
           </Link>
         </motion.div>
-
       </div>
     </>
   );

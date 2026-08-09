@@ -257,9 +257,70 @@
     50%       { transform: translateY(-10px); }
   }
 
+  @keyframes vinyl-spin {
+    to { transform: rotate(360deg); }
+  }
+
   .animate-gradient-drift  { animation: gradient-drift 8s ease-in-out infinite; }
   .animate-pulse-glow      { animation: pulse-glow 2.5s ease-in-out infinite; }
   .animate-float           { animation: float 4s ease-in-out infinite; }
+  .animate-vinyl-spin      { animation: vinyl-spin 4s linear infinite; }
+
+  /* ── Reduced motion ──
+     The stylesheet had no `prefers-reduced-motion` block at all: every infinite
+     animation above ran regardless of the OS setting. The JS side already had a
+     reduceMotion() helper, but CSS-driven loops were never covered by it.
+     A spinning record is far more provoking than a slow drift, so this stops
+     being optional once the vinyl exists. Animations are killed rather than
+     shortened — these are all decorative loops, so there is nothing to preserve. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-gradient-drift,
+    .animate-pulse-glow,
+    .animate-float,
+    .animate-vinyl-spin,
+    .gradient-text-animate {
+      animation: none !important;
+    }
+  }
+
+  /* ── Seek bar ──
+     A native range input, restyled. Kept native rather than rebuilt from divs
+     so it stays keyboard-operable (arrows seek, Home/End jump) and announces
+     itself to screen readers without any ARIA work. */
+  .seek-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    cursor: pointer;
+  }
+  .seek-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--color-primary, #f472b6);
+    border: none;
+    box-shadow: 0 0 6px rgba(244, 114, 182, 0.7);
+  }
+  .seek-range::-moz-range-thumb {
+    width: 11px;
+    height: 11px;
+    border: none;
+    border-radius: 50%;
+    background: var(--color-primary, #f472b6);
+    box-shadow: 0 0 6px rgba(244, 114, 182, 0.7);
+  }
+  .seek-range:focus-visible {
+    outline: 2px solid var(--color-primary, #f472b6);
+    outline-offset: 3px;
+  }
+  .seek-range:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 
   /* ── Page shell ──
      One place that decides the site's left/right edges. Every page plus Navbar

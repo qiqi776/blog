@@ -32,8 +32,22 @@ const buildPageList = (current, total) => {
 export default function Posts() {
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? ''; // driven by the navbar search
-  const [activeCategory, setActiveCategory] = useState('all');
   const [page, setPage] = useState(1);
+
+  // The category filter lives in the URL rather than in local state, so an
+  // inbound link can select it. It used to be useState('all'), which meant
+  // /posts?cat=go landed here and silently showed everything — the homepage
+  // knowledge map had been linking that way the whole time. An unknown id
+  // falls back to 'all' instead of filtering to an empty list.
+  const catParam = searchParams.get('cat') ?? 'all';
+  const activeCategory = categories.some((c) => c.id === catParam) ? catParam : 'all';
+
+  const setActiveCategory = (id) => {
+    const next = new URLSearchParams(searchParams);
+    if (id === 'all') next.delete('cat');
+    else next.set('cat', id);
+    setSearchParams(next, { replace: true });
+  };
 
   const clearSearch = () => {
     const next = new URLSearchParams(searchParams);
