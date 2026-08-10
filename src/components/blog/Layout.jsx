@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import SchemeBackdrop from '../SchemeBackdrop';
 import Petals from '../Petals';
+import MiniPlayer from './MiniPlayer';
 
 // Resets scroll for each incoming page. Lives inside the keyed subtree so it
 // runs when the new page mounts — not when the outgoing one starts to exit,
@@ -58,6 +59,11 @@ export default function Layout() {
       </AnimatePresence>
 
       <Footer />
+
+      {/* Outside AnimatePresence for the same reason as the backdrop: it must
+          not fade out and back in on every navigation. It hides itself on the
+          homepage, where the full player card already exists. */}
+      <MiniPlayer />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { marked } from 'marked';
 import { ArrowLeft, ArrowRight, Calendar, Clock, AlignLeft } from 'lucide-react';
@@ -256,6 +256,38 @@ export default function PostDetail() {
 
 // ── TOC sidebar ──────────────────────────────────────────────
 function TableOfContents({ headings, activeId }) {
+  const navRef = useRef(null);
+  const [maxH, setMaxH] = useState(null);
+
+  // 高度不能写死。原先的 calc 里按 sticky 的 top-24（96px）算，可是没吸顶时
+  // 卡片实际从 160px 开始 —— 实测 1280×800 未滚动时，目录底部比预期低 64px，
+  // 正好垂到播放器下面，「4.2 日志复制的完整流程」点不动。所以改成量出 nav
+  // 自己的位置再算剩余空间，吸顶前后都成立。
+  useEffect(() => {
+    if (!headings.length) return;
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const recalc = () => {
+      const top = nav.getBoundingClientRect().top;
+      const reserve =
+        parseFloat(
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--mini-player-reserve'),
+        ) || 0;
+      // 底部再留 16px，别让最后一行贴着播放器边缘。
+      setMaxH(Math.max(160, window.innerHeight - top - reserve - 16));
+    };
+
+    recalc();
+    window.addEventListener('scroll', recalc, { passive: true });
+    window.addEventListener('resize', recalc);
+    return () => {
+      window.removeEventListener('scroll', recalc);
+      window.removeEventListener('resize', recalc);
+    };
+  }, [headings.length]);
+
   if (!headings.length) return null;
   return (
     <div className="liquid-glass rounded-2xl p-4">
@@ -263,7 +295,13 @@ function TableOfContents({ headings, activeId }) {
         <AlignLeft size={12} className="text-[var(--color-primary)]" />
         <span className="text-sm md:text-base font-semibold text-[var(--text-heading)] tracking-wide uppercase">目录</span>
       </div>
-      <nav className="space-y-0.5 max-h-[calc(100vh-11rem)] overflow-y-auto scrollbar-hide">
+      {/* maxHeight 由上面的 effect 量出来，第一帧还没有值时先用 calc 兜底，
+          避免 SSR/首帧出现一个完全不受限的长列表。 */}
+      <nav
+        ref={navRef}
+        style={maxH ? { maxHeight: `${maxH}px` } : undefined}
+        className="space-y-0.5 max-h-[calc(100vh-11rem-var(--mini-player-reserve,0px))] overflow-y-auto scrollbar-hide"
+      >
         {headings.map((h) => {
           const active = activeId === h.id;
           return (
