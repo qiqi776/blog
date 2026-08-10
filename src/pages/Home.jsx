@@ -21,6 +21,7 @@ import {
 import { posts, categories } from "../data/posts";
 import { HANDLE } from "../data/profile";
 import { tracks } from "../data/personal";
+import { TiltCard } from "../components/ui/TiltCard";
 
 // ── Ambient glow ─────────────────────────────────────────────
 function Glow() {
@@ -67,32 +68,55 @@ function Card({
   aside,
   className = "",
   delay = 0,
+  tilt = 4,
+  tiltScale = 1.01,
+  tiltSpeed = 0.2,
   children,
 }) {
   return (
+    // Three nested elements, one transform each. The reveal (motion.section)
+    // and the tilt (TiltCard) both animate `transform`, so putting them on the
+    // same node means the last writer wins: TiltCard's inline style would clip
+    // the slide-up mid-flight, and the reveal would then stomp the tilt back to
+    // identity. Splitting them lets each own its own node and compose.
+    //
+    // The visual card is innermost so `liquid-glass` and its padding are not on
+    // a node being transformed by two parents — the backdrop-filter is cheaper
+    // to composite when its own box is static.
     <motion.section
       initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-      className={`liquid-glass rounded-2xl p-5 ${className}`}
     >
-      {title && (
-        <header className="flex items-center gap-2 mb-4">
-          {Icon && (
-            <Icon size={15} className="text-[var(--color-primary)] shrink-0" />
+      <TiltCard
+        tiltAmount={tilt}
+        scaleAmount={tiltScale}
+        speed={tiltSpeed}
+        className="h-full"
+      >
+        <div className={`liquid-glass rounded-2xl p-5 h-full ${className}`}>
+          {title && (
+            <header className="flex items-center gap-2 mb-4">
+              {Icon && (
+                <Icon
+                  size={15}
+                  className="text-[var(--color-primary)] shrink-0"
+                />
+              )}
+              <h2 className="text-base md:text-lg font-bold text-[var(--text-heading)]">
+                {title}
+              </h2>
+              {aside && (
+                <span className="ml-auto text-sm text-[var(--text-muted)]">
+                  {aside}
+                </span>
+              )}
+            </header>
           )}
-          <h2 className="text-base md:text-lg font-bold text-[var(--text-heading)]">
-            {title}
-          </h2>
-          {aside && (
-            <span className="ml-auto text-sm text-[var(--text-muted)]">
-              {aside}
-            </span>
-          )}
-        </header>
-      )}
-      {children}
+          {children}
+        </div>
+      </TiltCard>
     </motion.section>
   );
 }
@@ -369,11 +393,18 @@ function WritingPulse() {
   const inWindow = months.reduce((s, m) => s + m.count, 0);
 
   return (
+    // 3deg against the other two cards' 4, matching About's skills panel: this
+    // is the widest card on the page, and a given angle over a longer edge
+    // sweeps the far corner much further. It is also the only card whose
+    // content is quantitative — tilting shears the bars, so comparing two
+    // months' heights gets harder the further it rotates.
     <Card
       icon={PenLine}
       title="写作节奏"
       aside={`近 12 个月 ${inWindow} 篇 · 共 ${posts.length} 篇`}
       delay={0.12}
+      tilt={3}
+      tiltScale={1.005}
     >
       {/* Two 12-column grids rather than one flex row: the bars and the month
           labels have to line up column-for-column, and a shared grid template
