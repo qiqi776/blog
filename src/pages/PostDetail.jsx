@@ -6,8 +6,10 @@ import { ArrowLeft, ArrowRight, Calendar, Clock, AlignLeft } from 'lucide-react'
 import PostCard from '../components/blog/PostCard';
 import { getPostBySlug, posts } from '../data/posts';
 import { withBasePath } from '../lib/paths';
+import { renderCodeBlock } from '../lib/highlight';
 
 marked.setOptions({ gfm: true, breaks: false });
+marked.use({ renderer: { code: renderCodeBlock } });
 
 // heading text → URL-safe id (preserves CJK)
 const slugify = (text) =>
@@ -37,6 +39,23 @@ const addBasePathToRootRelativeAttrs = (html) =>
   html.replace(/\b(src|href)=(["'])(\/(?!\/)[^"']*)\2/g, (_, attr, quote, path) => {
     return `${attr}=${quote}${withBasePath(path)}${quote}`;
   });
+
+async function copyCode(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand('copy');
+  textarea.remove();
+}
 
 // Extract headings from raw markdown for TOC
 const parseToc = (content) => {
@@ -81,6 +100,38 @@ export default function PostDetail() {
     );
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
+  }, [html]);
+
+  useEffect(() => {
+    if (!html) return;
+    const root = document.querySelector('.prose-content');
+    if (!root) return;
+
+    const onClick = async (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const button = target.closest('.code-block__copy');
+      if (!button || !root.contains(button)) return;
+
+      const code = button.closest('.code-block')?.querySelector('.code-block__code')?.textContent?.replace(/\n$/, '');
+      if (!code) return;
+
+      try {
+        await copyCode(code);
+        button.textContent = '已复制';
+        window.setTimeout(() => {
+          button.textContent = '复制';
+        }, 1400);
+      } catch {
+        button.textContent = '复制失败';
+        window.setTimeout(() => {
+          button.textContent = '复制';
+        }, 1400);
+      }
+    };
+
+    root.addEventListener('click', onClick);
+    return () => root.removeEventListener('click', onClick);
   }, [html]);
 
   if (!post) {

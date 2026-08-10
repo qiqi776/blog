@@ -447,39 +447,382 @@
      Mono ships them, so `->`, `=>`, `!=`, `>=` now join as they do in the
      editor. `contextual` rather than `common` keeps it to the calt feature the
      font actually uses for these, and leaves prose ligatures alone. */
-  .prose-content code,
+  .prose-content :not(pre) > code,
   .font-mono {
     font-variant-ligatures: contextual;
   }
 
   /* inline code */
-  .prose-content code {
+  .prose-content :not(pre) > code {
     font-family: var(--font-mono);
-    font-size: 0.85em;
-    padding: 0.15em 0.4em;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.25);
-    color: var(--color-primary);
+    font-size: 0.84em;
+    padding: 0.12em 0.38em;
+    border: 1px solid color-mix(in oklch, var(--color-primary) 28%, transparent);
+    border-radius: 0.42rem;
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in oklch, var(--color-primary) 20%, transparent),
+        rgba(255, 255, 255, 0.08)
+      );
+    color: var(--color-accent);
+    white-space: break-spaces;
   }
 
-  /* code blocks */
-  .prose-content pre {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 12px;
+  /* Code blocks */
+  .prose-content .code-block {
+    --code-canvas: oklch(14% 0.018 318);
+    --code-panel: oklch(17.5% 0.017 318);
+    --code-rail: oklch(12.5% 0.015 318);
+    --code-rail-border: rgba(255, 255, 255, 0.075);
+    --code-border: rgba(255, 255, 255, 0.1);
+    --code-glow: color-mix(in oklch, var(--color-primary) 34%, transparent);
+    --code-muted: oklch(72% 0.035 318);
+    --code-fg: oklch(88% 0.012 318);
+    --tok-keyword: oklch(73% 0.14 286);
+    --tok-string: oklch(78% 0.12 44);
+    --tok-number: oklch(79% 0.11 142);
+    --tok-comment: oklch(64% 0.055 156);
+    --tok-type: oklch(78% 0.12 196);
+    --tok-func: oklch(86% 0.11 92);
+    --tok-var: oklch(82% 0.09 239);
+    --tok-selector: oklch(80% 0.11 78);
+    --tok-meta: oklch(77% 0.13 333);
+    --tok-danger: oklch(73% 0.14 21);
+
+    position: relative;
+    isolation: isolate;
+    margin: 1.55em 0;
+    overflow: hidden;
+    border-radius: 1.05rem;
+    background: var(--code-canvas);
+    box-shadow:
+      0 0 0 1px var(--code-border),
+      0 18px 56px rgba(0, 0, 0, 0.26),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .prose-content .code-block::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: -1;
+    height: 8rem;
+    background:
+      radial-gradient(circle at 18% 0%, var(--code-glow), transparent 34%),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 52%);
+    opacity: 0.42;
+    pointer-events: none;
+  }
+
+  .prose-content .code-block__chrome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.85rem;
+    min-height: 2.9rem;
+    padding: 0 0.72rem 0 1rem;
+    border-bottom: 1px solid var(--code-border);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.072), rgba(255, 255, 255, 0.025)),
+      var(--code-canvas);
+  }
+
+  .prose-content .code-block__identity {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    gap: 0.72rem;
+  }
+
+  .prose-content .code-block__traffic {
+    display: inline-grid;
+    grid-template-columns: repeat(3, 0.62rem);
+    gap: 0.42rem;
+    flex: 0 0 auto;
+  }
+
+  .prose-content .code-block__traffic span {
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 999px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  }
+
+  .prose-content .code-block__traffic span:nth-child(1) {
+    background: oklch(68% 0.18 25);
+  }
+
+  .prose-content .code-block__traffic span:nth-child(2) {
+    background: oklch(78% 0.15 86);
+  }
+
+  .prose-content .code-block__traffic span:nth-child(3) {
+    background: oklch(74% 0.15 151);
+  }
+
+  .prose-content .code-block__language {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+    color: oklch(86% 0.055 318);
+  }
+
+  .prose-content .code-block__copy {
+    flex: 0 0 auto;
+    min-height: 2.5rem;
+    min-width: 3.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    border-radius: 999px;
+    padding: 0 0.86rem;
+    background: rgba(255, 255, 255, 0.065);
+    color: oklch(83% 0.045 318);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    touch-action: manipulation;
+    transition-property: color, background-color, border-color, box-shadow, transform;
+    transition-duration: 160ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+  }
+
+  @media (hover: hover) {
+    .prose-content .code-block__copy:hover {
+      border-color: color-mix(in oklch, var(--color-primary) 58%, transparent);
+      background: color-mix(in oklch, var(--color-primary) 19%, transparent);
+      color: var(--color-accent);
+      box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-primary) 12%, transparent);
+    }
+  }
+
+  .prose-content .code-block__copy:active {
+    transform: scale(0.96);
+  }
+
+  .prose-content .code-block__copy:focus-visible {
+    outline: 2px solid rgba(244, 114, 182, 0.72);
+    outline-offset: 2px;
+  }
+
+  .prose-content .code-block__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    overflow-x: auto;
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.028) 1px, transparent 1px) 0 0 / 4.5rem 4.5rem,
+      var(--code-panel);
+    scrollbar-color: color-mix(in oklch, var(--color-primary) 42%, transparent) transparent;
+    scrollbar-width: thin;
+  }
+
+  .prose-content .code-block__body::-webkit-scrollbar {
+    height: 0.72rem;
+  }
+
+  .prose-content .code-block__body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .prose-content .code-block__body::-webkit-scrollbar-thumb {
+    border: 0.22rem solid transparent;
+    border-radius: 999px;
+    background: color-mix(in oklch, var(--color-primary) 42%, transparent);
+    background-clip: padding-box;
+  }
+
+  .prose-content .code-block__line-numbers {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    display: block;
+    padding: 1rem 0.82rem 1.15rem 1rem;
+    border-right: 1px solid var(--code-rail-border);
+    background:
+      linear-gradient(90deg, var(--code-rail), color-mix(in oklch, var(--code-rail) 92%, transparent));
+    color: color-mix(in oklch, var(--code-muted) 70%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.79em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.75;
+    text-align: right;
+    user-select: none;
+  }
+
+  .prose-content .code-block__line-numbers span {
+    display: block;
+    min-width: 2ch;
+  }
+
+  .prose-content .code-block__pre {
+    min-width: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 1rem 1.25rem 1.15rem 1rem;
+    overflow: visible;
+  }
+
+  .prose-content pre:not(.code-block__pre) {
+    background: oklch(17.5% 0.017 318);
+    border: 1px solid var(--code-border, rgba(255, 255, 255, 0.12));
+    border-radius: 1.05rem;
     padding: 1rem 1.25rem;
     overflow-x: auto;
     margin: 1.25em 0;
   }
-  /* `em` not `rem`, so code tracks the body step-up at md instead of staying
-     pinned at 13px while the prose around it grows to 18.4px. */
-  .prose-content pre code {
+
+  .prose-content .code-block__code {
+    display: block;
+    min-width: max-content;
     background: none;
-    color: var(--text-body);
     padding: 0;
+    color: var(--code-fg, #d4d4d4);
     font-size: 0.85em;
-    line-height: 1.7;
+    line-height: 1.75;
+    tab-size: 2;
+    white-space: pre;
+  }
+
+  .prose-content pre:not(.code-block__pre) code {
+    display: block;
+    min-width: max-content;
+    background: none;
+    padding: 0;
+    color: var(--code-fg, #d4d4d4);
+    font-size: 0.85em;
+    line-height: 1.75;
+    tab-size: 2;
+    white-space: pre;
+  }
+
+  .prose-content .code-block__code .hljs-keyword,
+  .prose-content .code-block__code .hljs-literal,
+  .prose-content .code-block__code .hljs-name,
+  .prose-content .code-block__code .hljs-doctag {
+    color: var(--tok-keyword);
+  }
+
+  .prose-content .code-block__code .hljs-string,
+  .prose-content .code-block__code .hljs-subst,
+  .prose-content .code-block__code .hljs-symbol,
+  .prose-content .code-block__code .hljs-regexp {
+    color: var(--tok-string);
+  }
+
+  .prose-content .code-block__code .hljs-number {
+    color: var(--tok-number);
+  }
+
+  .prose-content .code-block__code .hljs-type,
+  .prose-content .code-block__code .hljs-class,
+  .prose-content .code-block__code .hljs-built_in {
+    color: var(--tok-type);
+  }
+
+  .prose-content .code-block__code .hljs-title,
+  .prose-content .code-block__code .hljs-section {
+    color: var(--tok-func);
+  }
+
+  .prose-content .code-block__code .hljs-variable,
+  .prose-content .code-block__code .hljs-attr,
+  .prose-content .code-block__code .hljs-attribute,
+  .prose-content .code-block__code .hljs-property,
+  .prose-content .code-block__code .hljs-params {
+    color: var(--tok-var);
+  }
+
+  .prose-content .code-block__code .hljs-selector-tag,
+  .prose-content .code-block__code .hljs-selector-class,
+  .prose-content .code-block__code .hljs-selector-id,
+  .prose-content .code-block__code .hljs-selector-pseudo,
+  .prose-content .code-block__code .hljs-selector-attr {
+    color: var(--tok-selector);
+  }
+
+  .prose-content .code-block__code .hljs-comment,
+  .prose-content .code-block__code .hljs-quote {
+    color: var(--tok-comment);
+    font-style: italic;
+  }
+
+  .prose-content .code-block__code .hljs-meta,
+  .prose-content .code-block__code .hljs-meta-keyword {
+    color: var(--tok-meta);
+  }
+
+  .prose-content .code-block__code .hljs-meta .hljs-string {
+    color: var(--tok-string);
+  }
+
+  .prose-content .code-block__code .hljs-deletion {
+    color: var(--tok-danger);
+  }
+
+  .prose-content .code-block__code .hljs-addition {
+    color: var(--tok-number);
+  }
+
+  .prose-content .code-block__code .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .prose-content .code-block__code .hljs-strong {
+    font-weight: 700;
+  }
+
+  .prose-content .code-block__code .hljs-tag,
+  .prose-content .code-block__code .hljs-function,
+  .prose-content .code-block__code .hljs-operator,
+  .prose-content .code-block__code .hljs-punctuation {
+    color: var(--code-fg, #d4d4d4);
+  }
+
+  @media (max-width: 640px) {
+    .prose-content .code-block {
+      margin-right: -0.25rem;
+      margin-left: -0.25rem;
+      border-radius: 0.9rem;
+    }
+
+    .prose-content .code-block__chrome {
+      min-height: 2.72rem;
+      padding-right: 0.58rem;
+      padding-left: 0.82rem;
+    }
+
+    .prose-content .code-block__traffic {
+      grid-template-columns: repeat(3, 0.5rem);
+      gap: 0.34rem;
+    }
+
+    .prose-content .code-block__traffic span {
+      width: 0.5rem;
+      height: 0.5rem;
+    }
+
+    .prose-content .code-block__line-numbers {
+      padding: 0.9rem 0.62rem 1rem 0.72rem;
+      font-size: 0.74em;
+    }
+
+    .prose-content .code-block__pre {
+      padding: 0.9rem 1rem 1rem 0.82rem;
+    }
+
+    .prose-content .code-block__code {
+      font-size: 0.78em;
+    }
   }
 
   /* blockquote */
