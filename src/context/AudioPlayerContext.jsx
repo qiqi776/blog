@@ -4,10 +4,14 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
-  useState,
 } from "react";
 import { tracks } from "../data/personal";
+import {
+  audioPlayerReducer,
+  createAudioPlayerState,
+} from "../lib/audioPlayerState";
 
 // ── 全局播放状态 ─────────────────────────────────────────────
 // 唯一的 <audio> 元素挂在这里，而不是任何一个页面组件里。原因很直接：
@@ -28,76 +32,142 @@ export function useAudioPlayer() {
 }
 
 export function AudioPlayerProvider({ children }) {
-  const [idx, setIdx] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const [at, setAt] = useState(0);
-  const [len, setLen] = useState(0);
+  const [state, dispatch] = useReducer(
+    audioPlayerReducer,
+    tracks,
+    createAudioPlayerState,
+  );
   const ref = useRef(null);
+  const playRequestRef = useRef(0);
 
   const hasTracks = tracks.length > 0;
-  const current = tracks[idx] ?? { title: "—", artist: "—", src: "" };
+  const current = tracks[state.idx] ?? { title: "—", artist: "—", src: "" };
   const playable = Boolean(current.src);
+  const src = playable ? current.src : "";
 
-  // 曲目在播放中被切换 —— 把播放状态带到新的音源上。
-  // 不会撞上浏览器的自动播放策略：`playing` 只能由点击置为 true。
+  // Keep the media element alive across the whole app lifetime. Route changes
+  // re-render views, but they no longer create, remove, or reload <audio>.
   useEffect(() => {
     const el = ref.current;
-    if (!el || !playable) return;
-    if (playing) el.play().catch(() => setPlaying(false));
-    else el.pause();
-  }, [idx, playing, playable]);
+    if (!el) return;
+
+    if (el.getAttribute("src") !== src) {
+      if (!src) {
+        el.pause();
+        el.removeAttribute("src");
+      } else {
+        el.src = src;
+      }
+      el.load();
+    }
+  }, [src]);
+
+  // Only the user's playback intent and explicit track changes drive play/pause.
+  // A page navigation can re-render this provider, but it does not change either
+  // dependency, so it cannot pause or switch the current track.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const requestId = playRequestRef.current + 1;
+    playRequestRef.current = requestId;
+
+    if (!state.playing || !playable) {
+      el.pause();
+      return undefined;
+    }
+
+    const play = () => {
+      el.play().catch(() => {
+        if (playRequestRef.current === requestId) {
+          dispatch({ type: "playback-failed" });
+        }
+      });
+    };
+
+    if (el.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      play();
+      return undefined;
+    }
+
+    el.addEventListener("canplay", play, { once: true });
+    return () => el.removeEventListener("canplay", play);
+  }, [current.src, playable, state.playing]);
 
   const step = useCallback((n) => {
     if (!hasTracks) return;
-    setIdx((i) => (i + n + tracks.length) % tracks.length);
-    setAt(0);
-    setLen(0);
+    dispatch({ type: "track-step", delta: n });
   }, [hasTracks]);
 
-  const toggle = useCallback(() => setPlaying((p) => !p), []);
-  const toggleMute = useCallback(() => setMuted((m) => !m), []);
+  const toggle = useCallback(() => {
+    if (!playable) return;
+    dispatch({ type: "toggle-playback" });
+  }, [playable]);
+
+  const toggleMute = useCallback(() => {
+    dispatch({ type: "toggle-muted" });
+  }, []);
 
   const seek = useCallback((seconds) => {
     const v = Number(seconds);
     if (!Number.isFinite(v)) return;
-    setAt(v);
+    dispatch({ type: "seek", seconds: v });
     if (ref.current) ref.current.currentTime = v;
   }, []);
 
   const value = useMemo(
     () => ({
       current,
-      idx,
+      idx: state.idx,
       hasTracks,
       playable,
-      playing,
-      muted,
-      at,
-      len,
+      playing: state.playing,
+      muted: state.muted,
+      at: state.at,
+      len: state.len,
       step,
       toggle,
       toggleMute,
       seek,
     }),
-    [current, idx, hasTracks, playable, playing, muted, at, len, step, toggle, toggleMute, seek],
+    [
+      current,
+      state.idx,
+      hasTracks,
+      playable,
+      state.playing,
+      state.muted,
+      state.at,
+      state.len,
+      step,
+      toggle,
+      toggleMute,
+      seek,
+    ],
   );
 
   return (
     <AudioPlayerContext.Provider value={value}>
       {children}
-      {playable && (
-        <audio
-          ref={ref}
-          src={current.src}
-          muted={muted}
-          preload="metadata"
-          onTimeUpdate={(e) => setAt(e.currentTarget.currentTime)}
-          onLoadedMetadata={(e) => setLen(e.currentTarget.duration)}
-          onEnded={() => step(1)}
-          onError={() => setPlaying(false)}
-        />
-      )}
+      <audio
+        ref={ref}
+        muted={state.muted}
+        preload="metadata"
+        onTimeUpdate={(e) => {
+          dispatch({
+            type: "time-updated",
+            currentTime: e.currentTarget.currentTime,
+          });
+        }}
+        onLoadedMetadata={(e) => {
+          dispatch({
+            type: "metadata-loaded",
+            duration: e.currentTarget.duration,
+          });
+        }}
+        onEnded={() => dispatch({ type: "ended" })}
+        onError={() => dispatch({ type: "playback-failed" })}
+      />
     </AudioPlayerContext.Provider>
   );
 }
