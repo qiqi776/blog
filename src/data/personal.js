@@ -7,4 +7,9 @@ export const tracks = [
     artist: "GUM TAPES",
     src: withBasePath("/music/spring-is-coming-gum-tapes.m4a"),
   },
+  {
+    title: "Too Timid",
+    artist: "Holdan Sutton",
+    src: withBasePath("/music/too-timid-holdan-sutton.m4a"),
+  },
 ];
