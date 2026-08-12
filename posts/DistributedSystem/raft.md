@@ -282,13 +282,7 @@ func (r *Raft) becomeLeader() {
 
 ### 4.1 日志的结构
 
-在 Raft 中，日志是由一系列**日志条目**（Log Entry）组成的，每个条目包含三个核心字段：
-
-- **指令（Command）** ：客户端请求的操作指令，由状态机执行；
-- **索引（Log Index）** ：连续递增的整数，标识日志条目在日志中的唯一位置；
-- **任期号（Term）** ：创建该日志条目的领导者的任期编号。
-
-每个日志条目还包含创建它的任期号（每个框中的数字）和状态机的命令。日志的**连续性**确保了数据的一致性——索引和任期号共同用于检测日志冲突和同步状态。
+在 Raft 中，日志是由一系列**日志条目**（Log Entry）组成的
 
 ```go
 // LogEntry 是日志中的一个条目
@@ -351,10 +345,21 @@ func (r *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply)
         reply.Term = r.currentTerm
         return
     }
-    // 任期 >= 自己：承认对方是合法领导者，无条件退回跟随者
-    if args.Term > r.currentTerm || r.state != Follower {
+    // 任期 > 自己：承认对方是合法领导者，无条件退回跟随者
+    if args.Term > r.currentTerm {
         r.becomeFollower(args.Term)
+    } else if args.Term == r.currentTerm {
+        // 任期相等时，根据当前角色决定行为
+        if r.state == Leader {
+            // Leader 绝不能接受同任期的 AppendEntries（可能是过期或伪造消息）
+            return
+        }
+        if r.state == Candidate {
+            // Candidate 收到同任期的 AppendEntries，说明当前任期已有合法 Leader
+            r.becomeFollower(args.Term)
+        }
     }
+
     reply.Term = r.currentTerm
     r.resetElectionTimer() // 收到合法心跳，推迟选举
 
